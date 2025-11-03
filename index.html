@@ -1,17 +1,126 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>WKWebView Test</title>
+  <meta charset="utf-8" />
+  <title>HTML ⇄ WKWebView Events Demo</title>
+  <style>
+    body { font-family: -apple-system, system-ui, Arial, sans-serif; margin: 24px; }
+    h1 { margin-bottom: 8px; }
+    button { padding: 10px 14px; border-radius: 10px; border: 1px solid #ddd; cursor: pointer; }
+    .row { display: flex; gap: 16px; flex-wrap: wrap; margin: 16px 0; }
+    .card { border: 1px solid #e5e5e5; border-radius: 16px; padding: 16px; flex: 1 1 320px; }
+    #log { white-space: pre-wrap; border: 1px solid #eee; border-radius: 12px; padding: 12px; background: #fafafa; height: 220px; overflow: auto; }
+    code { background: #f1f1f1; padding: 0 6px; border-radius: 6px; }
+  </style>
 </head>
 <body>
-  <h1>Hello from Local HTML!</h1>
-  <button onclick="showMessage()">Click Me</button>
+  <h1>HTML ⇄ WKWebView Events</h1>
+  <p>This page can send events to iOS and receive events from iOS, plus demo custom DOM events.</p>
+
+  <div class="row">
+    <!-- 1) JS ➜ Native (WKScriptMessageHandler) -->
+    <div class="card">
+      <h3>Send message to iOS (JS ➜ Native)</h3>
+      <p>Posts a message on <code>window.webkit.messageHandlers.iosBridge</code>.</p>
+      <button id="btnSendToNative">Send “ping”</button>
+      <p style="font-size: 13px;opacity:.75">
+        iOS should register a handler named <code>iosBridge</code>.
+      </p>
+    </div>
+
+    <!-- 2) Native ➜ JS via CustomEvent -->
+    <div class="card">
+      <h3>Listen for native event (Native ➜ JS)</h3>
+      <p>Listens for <code>nativeEvent</code> on <code>window</code>.</p>
+      <button id="btnSimulateNativeEvent">Simulate native event (for browser testing)</button>
+      <p style="font-size: 13px;opacity:.75">
+        iOS can dispatch with:
+        <br><code>window.dispatchEvent(new CustomEvent('nativeEvent', { detail: { msg: 'hi' } }))</code>
+      </p>
+    </div>
+
+    <!-- 3) In-page event bus demo -->
+    <div class="card">
+      <h3>In-page custom events (JS ⇄ JS)</h3>
+      <p>Dispatches and listens to <code>user-action</code> on <code>document</code>.</p>
+      <button id="btnUserAction">Dispatch “user-action”</button>
+      <p style="font-size: 13px;opacity:.75">
+        Useful when you want loose coupling between parts of the page.
+      </p>
+    </div>
+  </div>
+
+  <h3>Log</h3>
+  <div id="log"></div>
 
   <script>
-    function showMessage() {
-      alert("Button clicked! Hello from JavaScript 👋");
+    // --------- Utilities ----------
+    function log(...args) {
+      const line = args.map(v => {
+        try { return typeof v === 'string' ? v : JSON.stringify(v); }
+        catch { return String(v); }
+      }).join(' ');
+      const el = document.getElementById('log');
+      el.textContent += `• ${line}\n`;
+      el.scrollTop = el.scrollHeight;
+      console.log('[LOG]', ...args);
     }
+
+    function safeBridge() {
+      return window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.iosBridge;
+    }
+
+    // --------- JS ➜ Native ----------
+    document.getElementById('btnSendToNative').addEventListener('click', () => {
+      const payload = { type: 'ping', time: new Date().toISOString(), data: { from: 'JS' } };
+      if (safeBridge()) {
+        window.webkit.messageHandlers.iosBridge.postMessage(payload);
+        log('JS ➜ Native postMessage:', payload);
+      } else {
+        log('⚠️ No iOS bridge found (running in a normal browser).');
+      }
+    });
+
+    // --------- Native ➜ JS via CustomEvent ----------
+    // iOS can call: window.dispatchEvent(new CustomEvent('nativeEvent', { detail: {...} }))
+    window.addEventListener('nativeEvent', (ev) => {
+      log('Native ➜ JS CustomEvent:', ev.detail);
+      // Example: respond back to native when certain messages arrive
+      if (ev.detail && ev.detail.request === 'version') {
+        const info = { app: 'WKWebView Events Demo', version: '1.0.0' };
+        safeBridge()?.postMessage({ type: 'version-response', info });
+        log('JS ➜ Native (auto-response):', info);
+      }
+    });
+
+    // For testing in a desktop browser (no native layer)
+    document.getElementById('btnSimulateNativeEvent').addEventListener('click', () => {
+      const stub = { msg: 'Simulated event from native', ts: Date.now() };
+      window.dispatchEvent(new CustomEvent('nativeEvent', { detail: stub }));
+    });
+
+    // --------- Native ➜ JS via direct function call ----------
+    // Give iOS a simple function to call directly.
+    window.receiveFromNative = function(data) {
+      log('Native ➜ JS via function call:', data);
+      // Optionally, bubble it as a DOM event too:
+      window.dispatchEvent(new CustomEvent('nativeEvent', { detail: data }));
+    };
+
+    // --------- In-page custom events (JS ⇄ JS) ----------
+    // Listener
+    document.addEventListener('user-action', (e) => {
+      log('In-page event received:', e.detail);
+    });
+    // Dispatcher
+    document.getElementById('btnUserAction').addEventListener('click', () => {
+      const detail = { action: 'button-click', at: new Date().toLocaleTimeString() };
+      document.dispatchEvent(new CustomEvent('user-action', { detail }));
+      log('In-page event dispatched:', detail);
+    });
+
+    // --------- Ready ---------
+    log('Page ready. Bridge available?', !!safeBridge());
   </script>
 </body>
 </html>
