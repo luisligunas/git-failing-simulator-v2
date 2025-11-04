@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>HTML ⇄ WKWebView Events Demo</title>
+  <title>HTML ⇄ WebView Events (iOS & Android)</title>
   <style>
     body { font-family: -apple-system, system-ui, Arial, sans-serif; margin: 24px; }
     h1 { margin-bottom: 8px; }
@@ -14,28 +14,33 @@
   </style>
 </head>
 <body>
-  <h1>HTML ⇄ WKWebView Events</h1>
-  <p>This page can send events to iOS and receive events from iOS, plus demo custom DOM events.</p>
+  <h1>HTML ⇄ WebView Events (iOS & Android)</h1>
+  <p>This page can send events to native and receive events from native on both iOS and Android, plus demo custom DOM events.</p>
 
   <div class="row">
-    <!-- 1) JS ➜ Native (WKScriptMessageHandler) -->
+    <!-- 1) JS ➜ Native -->
     <div class="card">
-      <h3>Send message to iOS (JS ➜ Native)</h3>
-      <p>Posts a message on <code>window.webkit.messageHandlers.iosBridge</code>.</p>
+      <h3>Send message to native (JS ➜ Native)</h3>
+      <p>Uses a unified <code>NativeBridge.send(payload)</code> that auto-detects iOS/Android.</p>
       <button id="btnSendToNative">Send “ping”</button>
       <p style="font-size: 13px;opacity:.75">
-        iOS should register a handler named <code>iosBridge</code>.
+        Expected native endpoints:
+        <br>• iOS: <code>window.webkit.messageHandlers.iosBridge.postMessage(json)</code>
+        <br>• Android (JSI): <code>window.AndroidBridge.postMessage(jsonString)</code> or <code>window.Android.postMessage(jsonString)</code>
+        <br>• Android (React Native): <code>window.ReactNativeWebView.postMessage(jsonString)</code>
       </p>
     </div>
 
-    <!-- 2) Native ➜ JS via CustomEvent -->
+    <!-- 2) Native ➜ JS -->
     <div class="card">
       <h3>Listen for native event (Native ➜ JS)</h3>
-      <p>Listens for <code>nativeEvent</code> on <code>window</code>.</p>
+      <p>Listens for <code>nativeEvent</code> on <code>window</code>, and also RN’s <code>message</code>.</p>
       <button id="btnSimulateNativeEvent">Simulate native event (for browser testing)</button>
       <p style="font-size: 13px;opacity:.75">
-        iOS can dispatch with:
-        <br><code>window.dispatchEvent(new CustomEvent('nativeEvent', { detail: { msg: 'hi' } }))</code>
+        Native can dispatch any of the following:
+        <br>• DOM: <code>window.dispatchEvent(new CustomEvent('nativeEvent', { detail: { msg: 'hi' } }))</code>
+        <br>• Call: <code>window.receiveFromNative({ msg: 'hi' })</code>
+        <br>• RN → Web: <code>webViewRef.postMessage(JSON.stringify({ type:'nativeEvent', detail:{ msg:'hi' }}))</code>
       </p>
     </div>
 
@@ -66,30 +71,132 @@
       console.log('[LOG]', ...args);
     }
 
-    function safeBridge() {
+    // --------- Cross-platform Native Bridge ----------
+    (function initNativeBridge(){
+      // Detect platforms/bridges we support
+      const isIOS = !!(window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.iosBridge);
+      const hasAndroidBridge = typeof window.AndroidBridge === 'object';
+      const hasAndroid = typeof window.Android === 'object';
+      const isReactNativeWV = typeof window.ReactNativeWebView === 'object';
+
+      // Create a unified sender
+      function sendToNative(payload) {
+        // Prefer object → string only when needed
+        const asString = JSON.stringify(payload);
+
+        if (isIOS) {
+          try {
+            window.webkit.messageHandlers.iosBridge.postMessage(payload);
+            log('JS ➜ iOS postMessage:', payload);
+            return true;
+          } catch (e) {
+            log('❌ iOS postMessage failed:', String(e));
+            return false;
+          }
+        }
+
+        // Android (classic addJavascriptInterface) usually requires strings
+        if (hasAndroidBridge && typeof window.AndroidBridge.postMessage === 'function') {
+          try {
+            window.AndroidBridge.postMessage(asString);
+            log('JS ➜ AndroidBridge.postMessage:', payload);
+            return true;
+          } catch (e) {
+            log('❌ AndroidBridge.postMessage failed:', String(e));
+            return false;
+          }
+        }
+        if (hasAndroid && typeof window.Android.postMessage === 'function') {
+          try {
+            window.Android.postMessage(asString);
+            log('JS ➜ Android.postMessage:', payload);
+            return true;
+          } catch (e) {
+            log('❌ Android.postMessage failed:', String(e));
+            return false;
+          }
+        }
+
+        // React Native WebView bridge
+        if (isReactNativeWV && typeof window.ReactNativeWebView.postMessage === 'function') {
+          try {
+            window.ReactNativeWebView.postMessage(asString);
+            log('JS ➜ RN postMessage:', payload);
+            return true;
+          } catch (e) {
+            log('❌ RN postMessage failed:', String(e));
+            return false;
+          }
+        }
+
+        log('⚠️ No native bridge found. Are you in a normal browser?');
+        return false;
+      }
+
+      // Expose a small, typed bridge for app code
+      window.NativeBridge = {
+        env: {
+          ios: isIOS,
+          android: hasAndroid || hasAndroidBridge || isReactNativeWV,
+          rn: isReactNativeWV
+        },
+        send: sendToNative
+      };
+    })();
+
+    // Convenience (kept for backwards-compat iOS checks)
+    function safeIOSBridge() {
       return window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.iosBridge;
     }
 
     // --------- JS ➜ Native ----------
     document.getElementById('btnSendToNative').addEventListener('click', () => {
       const payload = { type: 'ping', time: new Date().toISOString(), data: { from: 'JS' } };
-      if (safeBridge()) {
-        window.webkit.messageHandlers.iosBridge.postMessage(payload);
-        log('JS ➜ Native postMessage:', payload);
-      } else {
-        log('⚠️ No iOS bridge found (running in a normal browser).');
+      window.NativeBridge.send(payload);
+    });
+
+    // --------- Native ➜ JS (CustomEvent) ----------
+    // Native can call: window.dispatchEvent(new CustomEvent('nativeEvent', { detail: {...} }))
+    window.addEventListener('nativeEvent', (ev) => {
+      log('Native ➜ JS (CustomEvent):', ev.detail);
+      // Example: respond back to native when certain messages arrive
+      if (ev.detail && ev.detail.request === 'version') {
+        const info = { app: 'WebView Events Demo', version: '1.1.0' };
+        // Reply via unified bridge
+        window.NativeBridge.send({ type: 'version-response', info });
+        log('JS ➜ Native (auto-response):', info);
       }
     });
 
-    // --------- Native ➜ JS via CustomEvent ----------
-    // iOS can call: window.dispatchEvent(new CustomEvent('nativeEvent', { detail: {...} }))
-    window.addEventListener('nativeEvent', (ev) => {
-      log('Native ➜ JS CustomEvent:', ev.detail);
-      // Example: respond back to native when certain messages arrive
-      if (ev.detail && ev.detail.request === 'version') {
-        const info = { app: 'WKWebView Events Demo', version: '1.0.0' };
-        safeBridge()?.postMessage({ type: 'version-response', info });
-        log('JS ➜ Native (auto-response):', info);
+    // --------- Native ➜ JS (direct function call) ----------
+    // iOS/Android can directly call this via evaluateJavascript(...)
+    window.receiveFromNative = function(data) {
+      // Accept object or JSON string
+      let payload = data;
+      if (typeof data === 'string') {
+        try { payload = JSON.parse(data); } catch { /* keep as string */ }
+      }
+      log('Native ➜ JS (function call):', payload);
+      // Optionally, bubble it as a DOM event too:
+      window.dispatchEvent(new CustomEvent('nativeEvent', { detail: payload }));
+    };
+
+    // --------- Native ➜ JS (React Native "message" event) ----------
+    // React Native's WebView sends messages into the page via 'message' event.
+    window.addEventListener('message', (ev) => {
+      // RN puts the payload on ev.data
+      let data = ev.data;
+      try {
+        const parsed = typeof data === 'string' ? JSON.parse(data) : data;
+        data = parsed;
+      } catch { /* not JSON, use as-is */ }
+
+      if (data && (data.type || data.detail)) {
+        log('Native ➜ JS (RN message):', data);
+        // Normalize to our CustomEvent channel
+        window.dispatchEvent(new CustomEvent('nativeEvent', { detail: data.detail ?? data }));
+      } else {
+        log('Native ➜ JS (RN message, raw):', data);
       }
     });
 
@@ -98,14 +205,6 @@
       const stub = { msg: 'Simulated event from native', ts: Date.now() };
       window.dispatchEvent(new CustomEvent('nativeEvent', { detail: stub }));
     });
-
-    // --------- Native ➜ JS via direct function call ----------
-    // Give iOS a simple function to call directly.
-    window.receiveFromNative = function(data) {
-      log('Native ➜ JS via function call:', data);
-      // Optionally, bubble it as a DOM event too:
-      window.dispatchEvent(new CustomEvent('nativeEvent', { detail: data }));
-    };
 
     // --------- In-page custom events (JS ⇄ JS) ----------
     // Listener
@@ -120,7 +219,8 @@
     });
 
     // --------- Ready ---------
-    log('Page ready. Bridge available?', !!safeBridge());
+    log('Page ready. Bridge env:', window.NativeBridge.env);
+    log('iOS legacy bridge available?', !!safeIOSBridge());
   </script>
 </body>
 </html>
