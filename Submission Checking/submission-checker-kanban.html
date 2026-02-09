@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submission Checker - Kanban Board</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        .scrollbar-thin::-webkit-scrollbar { width: 6px; }
+        .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+        .scrollbar-thin::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+        .card { cursor: grab; transition: all 0.2s; }
+        .card:active { cursor: grabbing; }
+        .card.dragging { opacity: 0.5; transform: rotate(3deg); }
+        .column.drag-over { background: #EEF2FF; }
+        .expand-panel { transition: max-height 0.3s ease-out; overflow: hidden; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="px-6 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <h1 class="text-lg font-semibold text-gray-800">Submission Board</h1>
+                <span class="px-2 py-1 text-xs font-medium rounded" style="background-color: #AFCBFF;">PRICE CHECK</span>
+                <span class="text-sm text-gray-600">M06173 - Huff n' Puff 3.0</span>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2 px-3 py-1.5 bg-green-50 rounded-lg">
+                    <svg class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                    </svg>
+                    <span class="text-sm text-green-700">Last batch synced</span>
+                </div>
+                <button class="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700">
+                    Submit All Decisions
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Board -->
+    <main class="p-6">
+        <div class="flex space-x-4 overflow-x-auto pb-4">
+            <!-- Pending Column -->
+            <div class="column flex-shrink-0 w-80 bg-gray-50 rounded-xl p-4" data-status="pending" ondragover="handleDragOver(event)" ondrop="handleDrop(event)">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-3 h-3 bg-yellow-400 rounded-full"></span>
+                        <h2 class="font-semibold text-gray-800">Pending</h2>
+                        <span class="px-2 py-0.5 bg-gray-200 text-gray-600 text-xs rounded-full">6</span>
+                    </div>
+                    <button class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="space-y-3 max-h-[calc(100vh-200px)] overflow-y-auto scrollbar-thin pr-2">
+                    <!-- Card 1 -->
+                    <div class="card bg-white rounded-lg shadow-sm border border-gray-200 p-4" draggable="true" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)" onclick="openDetailPanel(this)">
+                        <div class="flex items-start justify-between mb-2">
+                            <span class="text-xs font-medium text-gray-500">#...150935</span>
+                            <span class="px-2 py-0.5 text-xs bg-yellow-100 text-yellow-700 rounded">Pending</span>
+                        </div>
+                        <h3 class="font-medium text-gray-800 mb-1">BUTCH'S STORE</h3>
+                        <p class="text-xs text-gray-500 mb-3">San Roque, Angono, Rizal</p>
+
+                        <!-- Alerts -->
+                        <div class="flex flex-wrap gap-1 mb-3">
+                            <span class="px-1.5 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded flex items-center">
+                                <svg class="w-3 h-3 mr-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                </svg>
+                                Gallery
+                            </span>
+                            <span class="px-1.5 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded flex items-center">
+                                <svg class="w-3 h-3 mr-0.5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                                </svg>
+                                No GPS
+                            </span>
+                        </div>
+
+                        <!-- Images Preview -->
+                        <div class="flex space-x-1 mb-3">
+                            <img src="https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=100" class="w-12 h-12 rounded object-cover">
+                            <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=100" class="w-12 h-12 rounded object-cover">
+                            <div class="w-12 h-12 rounded bg-gray-100 flex items-center justify-center text-xs text-gray-500">+2</div>
+                        </div>
+
+                        <div class="flex items-center justify-between text-xs text-gray-500">
+                            <span>BFKJ87693581</span>
+                            <span>12:51 PM</span>
+                        </div>
+                    </div>
+
+                    <!-- Card 2 -->
+                    <div class="card bg-white rounded-lg shadow-sm border border-gray-200 p-4" draggable="true" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)" onclick="openDetailPanel(this)">
+                        <div class="flex items-start justify-between mb-2">
+                            <span class="text-xs font-medium text-gray-500">#...150936</span>
+                            <span class="px-2 py-0.5 text-xs bg-yellow-100 text-yellow-700 rounded">Pending</span>
+                        </div>
+                        <h3 class="font-medium text-gray-800 mb-1">LINA'S VARIETY</h3>
+                        <p class="text-xs text-gray-500 mb-3">Poblacion, Binangonan, Rizal</p>
+                        <div class="flex space-x-1 mb-3">
+                            <img src="https://images.unsplash.com/photo-1556740738-b6a63e27c4df?w=100" class="w-12 h-12 rounded object-cover">
+                            <img src="https://images.unsplash.com/photo-1556740772-1a741367b93e?w=100" class="w-12 h-12 rounded object-cover">
+                        </div>
+                        <div class="flex items-center justify-between text-xs text-gray-500">
+                            <span>EFGH11112222</span>
+                            <span>12:55 PM</span>
+                        </div>
+                    </div>
+
+                    <!-- Card 3 -->
+                    <div class="card bg-white rounded-lg shadow-sm border border-gray-200 p-4" draggable="true" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)" onclick="openDetailPanel(this)">
+                        <div class="flex items-start justify-between mb-2">
+                            <span class="text-xs font-medium text-gray-500">#...150937</span>
+                            <span class="px-2 py-0.5 text-xs bg-yellow-100 text-yellow-700 rounded">Pending</span>
+                        </div>
+                        <h3 class="font-medium text-gray-800 mb-1">PEDRO'S CORNER</h3>
+                        <p class="text-xs text-gray-500 mb-3">Santolan, Pasig City</p>
+                        <div class="flex flex-wrap gap-1 mb-3">
+                            <span class="px-1.5 py-0.5 bg-red-100 text-red-700 text-xs rounded">Suspected fraud</span>
+                        </div>
+                        <div class="flex space-x-1 mb-3">
+                            <img src="https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=100" class="w-12 h-12 rounded object-cover">
+                        </div>
+                        <div class="flex items-center justify-between text-xs text-gray-500">
+                            <span>IJKL33334444</span>
+                            <span>1:02 PM</span>
+                        </div>
+                    </div>
+
+                    <!-- More cards... -->
+                    <div class="card bg-white rounded-lg shadow-sm border border-gray-200 p-4" draggable="true" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)">
+                        <div class="flex items-start justify-between mb-2">
+                            <span class="text-xs font-medium text-gray-500">#...150939</span>
+                            <span class="px-2 py-0.5 text-xs bg-yellow-100 text-yellow-700 rounded">Pending</span>
+                        </div>
+                        <h3 class="font-medium text-gray-800 mb-1">ROSE MINI MART</h3>
+                        <p class="text-xs text-gray-500 mb-3">Cainta, Rizal</p>
+                        <div class="flex items-center justify-between text-xs text-gray-500">
+                            <span>MNOP55556666</span>
+                            <span>1:10 PM</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Approved Column -->
+            <div class="column flex-shrink-0 w-80 bg-green-50/50 rounded-xl p-4" data-status="approved" ondragover="handleDragOver(event)" ondrop="handleDrop(event)">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-3 h-3 bg-green-500 rounded-full"></span>
+                        <h2 class="font-semibold text-gray-800">Approved</h2>
+                        <span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">2</span>
+                    </div>
+                </div>
+
+                <div class="space-y-3 max-h-[calc(100vh-200px)] overflow-y-auto scrollbar-thin pr-2">
+                    <div class="card bg-white rounded-lg shadow-sm border border-green-200 p-4" draggable="true" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)">
+                        <div class="flex items-start justify-between mb-2">
+                            <span class="text-xs font-medium text-gray-500">#...150934</span>
+                            <span class="px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded">Approved</span>
+                        </div>
+                        <h3 class="font-medium text-gray-800 mb-1">MARIA'S SARI-SARI</h3>
+                        <p class="text-xs text-gray-500 mb-3">Marikina City</p>
+                        <div class="flex items-center justify-between text-xs text-gray-500">
+                            <span>PHP 50 reward</span>
+                            <span>12:45 PM</span>
+                        </div>
+                    </div>
+
+                    <div class="card bg-white rounded-lg shadow-sm border border-green-200 p-4" draggable="true" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)">
+                        <div class="flex items-start justify-between mb-2">
+                            <span class="text-xs font-medium text-gray-500">#...150932</span>
+                            <span class="px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded">Approved</span>
+                        </div>
+                        <h3 class="font-medium text-gray-800 mb-1">JOSE'S TINDAHAN</h3>
+                        <p class="text-xs text-gray-500 mb-3">Quezon City</p>
+                        <div class="flex items-center justify-between text-xs text-gray-500">
+                            <span>PHP 50 reward</span>
+                            <span>12:30 PM</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Drop hint -->
+                <div class="mt-4 border-2 border-dashed border-green-300 rounded-lg p-4 text-center">
+                    <svg class="w-8 h-8 text-green-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <p class="text-sm text-green-600 mt-1">Drop to approve</p>
+                </div>
+            </div>
+
+            <!-- Rejected Column -->
+            <div class="column flex-shrink-0 w-80 bg-red-50/50 rounded-xl p-4" data-status="rejected" ondragover="handleDragOver(event)" ondrop="handleDrop(event)">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-3 h-3 bg-red-500 rounded-full"></span>
+                        <h2 class="font-semibold text-gray-800">Rejected</h2>
+                        <span class="px-2 py-0.5 bg-red-100 text-red-700 text-xs rounded-full">1</span>
+                    </div>
+                </div>
+
+                <div class="space-y-3 max-h-[calc(100vh-200px)] overflow-y-auto scrollbar-thin pr-2">
+                    <div class="card bg-white rounded-lg shadow-sm border border-red-200 p-4" draggable="true" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)">
+                        <div class="flex items-start justify-between mb-2">
+                            <span class="text-xs font-medium text-gray-500">#...150933</span>
+                            <span class="px-2 py-0.5 text-xs bg-red-100 text-red-700 rounded">Rejected</span>
+                        </div>
+                        <h3 class="font-medium text-gray-800 mb-1">TONY'S STORE</h3>
+                        <p class="text-xs text-gray-500 mb-2">Paranaque City</p>
+                        <div class="flex flex-wrap gap-1 mb-2">
+                            <span class="px-1.5 py-0.5 bg-red-100 text-red-700 text-xs rounded">Blurry images</span>
+                            <span class="px-1.5 py-0.5 bg-red-100 text-red-700 text-xs rounded">Location mismatch</span>
+                        </div>
+                        <div class="flex items-center justify-between text-xs text-gray-500">
+                            <span>WXYZ98765432</span>
+                            <span>12:40 PM</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 border-2 border-dashed border-red-300 rounded-lg p-4 text-center">
+                    <svg class="w-8 h-8 text-red-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                    <p class="text-sm text-red-600 mt-1">Drop to reject</p>
+                </div>
+            </div>
+
+            <!-- Unqualified Column -->
+            <div class="column flex-shrink-0 w-80 bg-yellow-50/50 rounded-xl p-4" data-status="unqualified" ondragover="handleDragOver(event)" ondrop="handleDrop(event)">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-3 h-3 bg-yellow-500 rounded-full"></span>
+                        <h2 class="font-semibold text-gray-800">Unqualified</h2>
+                        <span class="px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full">0</span>
+                    </div>
+                </div>
+
+                <div class="space-y-3 max-h-[calc(100vh-200px)] overflow-y-auto scrollbar-thin pr-2">
+                    <!-- Empty state -->
+                    <div class="text-center py-8">
+                        <svg class="w-12 h-12 text-yellow-300 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <p class="text-sm text-gray-500 mt-2">No submissions</p>
+                    </div>
+                </div>
+
+                <div class="mt-4 border-2 border-dashed border-yellow-300 rounded-lg p-4 text-center">
+                    <svg class="w-8 h-8 text-yellow-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <p class="text-sm text-yellow-600 mt-1">Drop for unqualified</p>
+                </div>
+            </div>
+
+            <!-- Restricted Column -->
+            <div class="column flex-shrink-0 w-80 bg-purple-50/50 rounded-xl p-4" data-status="restricted" ondragover="handleDragOver(event)" ondrop="handleDrop(event)">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-3 h-3 bg-purple-500 rounded-full"></span>
+                        <h2 class="font-semibold text-gray-800">Restricted</h2>
+                        <span class="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full">0</span>
+                    </div>
+                </div>
+
+                <div class="space-y-3 max-h-[calc(100vh-200px)] overflow-y-auto scrollbar-thin pr-2">
+                    <div class="text-center py-8">
+                        <svg class="w-12 h-12 text-purple-300 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                        </svg>
+                        <p class="text-sm text-gray-500 mt-2">No submissions</p>
+                    </div>
+                </div>
+
+                <div class="mt-4 border-2 border-dashed border-purple-300 rounded-lg p-4 text-center">
+                    <svg class="w-8 h-8 text-purple-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                    </svg>
+                    <p class="text-sm text-purple-600 mt-1">Drop for restricted</p>
+                </div>
+            </div>
+
+            <!-- Skipped Column -->
+            <div class="column flex-shrink-0 w-80 bg-gray-100 rounded-xl p-4" data-status="skipped" ondragover="handleDragOver(event)" ondrop="handleDrop(event)">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-3 h-3 bg-gray-400 rounded-full"></span>
+                        <h2 class="font-semibold text-gray-800">Skipped</h2>
+                        <span class="px-2 py-0.5 bg-gray-200 text-gray-600 text-xs rounded-full">1</span>
+                    </div>
+                </div>
+
+                <div class="space-y-3 max-h-[calc(100vh-200px)] overflow-y-auto scrollbar-thin pr-2">
+                    <div class="card bg-white rounded-lg shadow-sm border border-gray-200 p-4 opacity-60" draggable="true" ondragstart="handleDragStart(event)" ondragend="handleDragEnd(event)">
+                        <div class="flex items-start justify-between mb-2">
+                            <span class="text-xs font-medium text-gray-500">#...150938</span>
+                            <span class="px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded">Skipped</span>
+                        </div>
+                        <h3 class="font-medium text-gray-800 mb-1">UNKNOWN STORE</h3>
+                        <p class="text-xs text-gray-500 mb-2">Need more info</p>
+                        <div class="flex items-center justify-between text-xs text-gray-500">
+                            <span>QRST77778888</span>
+                            <span>1:05 PM</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                    <svg class="w-8 h-8 text-gray-400 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>
+                    </svg>
+                    <p class="text-sm text-gray-600 mt-1">Drop to skip</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Detail Slide-over Panel -->
+    <div id="detailPanel" class="fixed inset-y-0 right-0 w-[500px] bg-white shadow-2xl transform translate-x-full transition-transform duration-300 z-50">
+        <div class="h-full flex flex-col">
+            <!-- Panel Header -->
+            <div class="p-4 border-b border-gray-200 flex items-center justify-between">
+                <h2 class="text-lg font-semibold text-gray-800">Submission Details</h2>
+                <button onclick="closeDetailPanel()" class="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Panel Content -->
+            <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                <!-- Submission Info -->
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-xs text-gray-500">#202602092652150935</p>
+                            <h3 class="text-lg font-semibold text-gray-800 mt-1">BUTCH'S STORE</h3>
+                            <p class="text-sm text-gray-600">San Roque, Angono, Rizal</p>
+                        </div>
+                        <span class="px-3 py-1 bg-yellow-100 text-yellow-700 text-sm font-medium rounded-full">Pending</span>
+                    </div>
+                </div>
+
+                <!-- Alerts -->
+                <div class="space-y-2">
+                    <div class="flex items-center p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <svg class="w-5 h-5 text-yellow-500 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                        </svg>
+                        <div>
+                            <p class="text-sm font-medium text-yellow-800">Image from gallery</p>
+                            <p class="text-xs text-yellow-600">Selfie not taken live</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Images -->
+                <div>
+                    <h4 class="text-sm font-medium text-gray-700 mb-2">Images (4)</h4>
+                    <div class="grid grid-cols-2 gap-2">
+                        <img src="https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400" class="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-80">
+                        <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400" class="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-80">
+                        <img src="https://images.unsplash.com/photo-1527525443983-cf80e8a81ca6?w=400" class="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-80">
+                        <img src="https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400" class="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-80">
+                    </div>
+                </div>
+
+                <!-- Key Data -->
+                <div>
+                    <h4 class="text-sm font-medium text-gray-700 mb-2">Key Information</h4>
+                    <div class="bg-gray-50 rounded-lg divide-y divide-gray-200">
+                        <div class="p-3 flex justify-between">
+                            <span class="text-sm text-gray-600">User</span>
+                            <span class="text-sm font-medium">BFKJ87693581</span>
+                        </div>
+                        <div class="p-3 flex justify-between">
+                            <span class="text-sm text-gray-600">Reward</span>
+                            <span class="text-sm font-medium">PHP 50</span>
+                        </div>
+                        <div class="p-3 flex justify-between">
+                            <span class="text-sm text-gray-600">Time Spent</span>
+                            <span class="text-sm font-medium">5m 45s</span>
+                        </div>
+                        <div class="p-3 flex justify-between">
+                            <span class="text-sm text-gray-600">Purchase Code</span>
+                            <span class="text-sm font-medium font-mono text-indigo-600">E9AR</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Violations Checklist -->
+                <div>
+                    <h4 class="text-sm font-medium text-gray-700 mb-2">Flag Issues</h4>
+                    <div class="space-y-2">
+                        <label class="flex items-center p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100">
+                            <input type="checkbox" class="w-4 h-4 text-red-500 rounded mr-3">
+                            <span class="text-sm text-gray-700">Gallery image (not live)</span>
+                        </label>
+                        <label class="flex items-center p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100">
+                            <input type="checkbox" class="w-4 h-4 text-red-500 rounded mr-3">
+                            <span class="text-sm text-gray-700">No GPS data</span>
+                        </label>
+                        <label class="flex items-center p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100">
+                            <input type="checkbox" class="w-4 h-4 text-red-500 rounded mr-3">
+                            <span class="text-sm text-gray-700">Blurry images</span>
+                        </label>
+                        <label class="flex items-center p-3 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100">
+                            <input type="checkbox" class="w-4 h-4 text-red-500 rounded mr-3">
+                            <span class="text-sm text-gray-700">Suspected fraud</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Remarks -->
+                <div>
+                    <h4 class="text-sm font-medium text-gray-700 mb-2">Remarks</h4>
+                    <textarea placeholder="Add any notes or remarks..." class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none focus:ring-2 focus:ring-indigo-500" rows="3"></textarea>
+                </div>
+            </div>
+
+            <!-- Panel Actions -->
+            <div class="p-4 border-t border-gray-200 bg-gray-50">
+                <div class="grid grid-cols-2 gap-2 mb-2">
+                    <button class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center justify-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Approve
+                    </button>
+                    <button class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 flex items-center justify-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                        Reject
+                    </button>
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                    <button class="px-3 py-2 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-100 text-sm">Unqualified</button>
+                    <button class="px-3 py-2 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-100 text-sm">Restricted</button>
+                    <button class="px-3 py-2 border border-orange-200 bg-orange-50 rounded-lg text-orange-700 hover:bg-orange-100 text-sm">Reserve</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay -->
+    <div id="overlay" class="fixed inset-0 bg-black/20 z-40 hidden" onclick="closeDetailPanel()"></div>
+
+    <script>
+        let draggedCard = null;
+
+        function handleDragStart(e) {
+            draggedCard = e.target;
+            e.target.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+            document.querySelectorAll('.column').forEach(col => col.classList.remove('drag-over'));
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const column = e.currentTarget;
+            column.classList.remove('drag-over');
+
+            if (draggedCard) {
+                const status = column.dataset.status;
+                const cardContainer = column.querySelector('.space-y-3');
+
+                // Update card status badge
+                const badge = draggedCard.querySelector('[class*="bg-"][class*="-100"]');
+                if (badge) {
+                    badge.className = getStatusBadgeClass(status);
+                    badge.textContent = capitalizeFirst(status);
+                }
+
+                // Update card border
+                draggedCard.className = draggedCard.className.replace(/border-\w+-200/g, `border-${getStatusColor(status)}-200`);
+
+                // Insert before the drop hint
+                const dropHint = column.querySelector('.border-dashed');
+                if (dropHint) {
+                    cardContainer.insertBefore(draggedCard, dropHint);
+                } else {
+                    cardContainer.appendChild(draggedCard);
+                }
+
+                updateColumnCounts();
+            }
+        }
+
+        function getStatusBadgeClass(status) {
+            const colors = {
+                pending: 'px-2 py-0.5 text-xs bg-yellow-100 text-yellow-700 rounded',
+                approved: 'px-2 py-0.5 text-xs bg-green-100 text-green-700 rounded',
+                rejected: 'px-2 py-0.5 text-xs bg-red-100 text-red-700 rounded',
+                unqualified: 'px-2 py-0.5 text-xs bg-yellow-100 text-yellow-700 rounded',
+                restricted: 'px-2 py-0.5 text-xs bg-purple-100 text-purple-700 rounded',
+                skipped: 'px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded'
+            };
+            return colors[status] || colors.pending;
+        }
+
+        function getStatusColor(status) {
+            const colors = {
+                pending: 'gray',
+                approved: 'green',
+                rejected: 'red',
+                unqualified: 'yellow',
+                restricted: 'purple',
+                skipped: 'gray'
+            };
+            return colors[status] || 'gray';
+        }
+
+        function capitalizeFirst(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+
+        function updateColumnCounts() {
+            document.querySelectorAll('.column').forEach(col => {
+                const count = col.querySelectorAll('.card').length;
+                const countBadge = col.querySelector('.rounded-full');
+                if (countBadge) {
+                    countBadge.textContent = count;
+                }
+            });
+        }
+
+        function openDetailPanel(card) {
+            document.getElementById('detailPanel').classList.remove('translate-x-full');
+            document.getElementById('overlay').classList.remove('hidden');
+        }
+
+        function closeDetailPanel() {
+            document.getElementById('detailPanel').classList.add('translate-x-full');
+            document.getElementById('overlay').classList.add('hidden');
+        }
+    </script>
+</body>
+</html>

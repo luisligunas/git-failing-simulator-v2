@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submission Checker - Split Panel View</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        .scrollbar-thin::-webkit-scrollbar { width: 6px; }
+        .scrollbar-thin::-webkit-scrollbar-track { background: #f1f1f1; }
+        .scrollbar-thin::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 3px; }
+        .submission-item.active { background: linear-gradient(to right, #EEF2FF, #fff); border-left: 3px solid #6366F1; }
+        .submission-item:hover:not(.active) { background: #F9FAFB; }
+    </style>
+</head>
+<body class="bg-gray-50 h-screen overflow-hidden">
+    <!-- Top Bar -->
+    <header class="bg-white border-b border-gray-200 h-14 flex items-center justify-between px-4 fixed top-0 left-0 right-0 z-50">
+        <div class="flex items-center space-x-4">
+            <h1 class="text-lg font-semibold text-gray-800">QA Checker</h1>
+            <div class="h-6 w-px bg-gray-200"></div>
+            <div class="flex items-center space-x-2">
+                <span class="px-2 py-1 text-xs font-medium rounded" style="background-color: #AFCBFF;">PRICE CHECK</span>
+                <span class="text-sm text-gray-600">M06173 - Huff n' Puff 3.0</span>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <div id="batchIndicator" class="flex items-center space-x-2 px-3 py-1.5 bg-blue-50 rounded-lg">
+                <div class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                <span class="text-sm text-blue-700">Syncing batch...</span>
+            </div>
+            <div class="flex items-center space-x-2 text-sm">
+                <span class="text-gray-500">Checked today:</span>
+                <span class="font-semibold text-gray-800">47</span>
+            </div>
+            <div class="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center text-white text-sm font-medium">C</div>
+        </div>
+    </header>
+
+    <div class="flex h-screen pt-14">
+        <!-- Left Sidebar - Submission List -->
+        <aside class="w-80 bg-white border-r border-gray-200 flex flex-col">
+            <!-- Filters -->
+            <div class="p-3 border-b border-gray-100">
+                <div class="flex items-center space-x-2 mb-3">
+                    <div class="relative flex-1">
+                        <input type="text" placeholder="Search submissions..." class="w-full pl-8 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                        <svg class="w-4 h-4 text-gray-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+                    <button class="p-2 border border-gray-200 rounded-lg hover:bg-gray-50">
+                        <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                        </svg>
+                    </button>
+                </div>
+                <div class="flex space-x-1">
+                    <button class="flex-1 px-2 py-1.5 text-xs font-medium bg-indigo-100 text-indigo-700 rounded-md">All (10)</button>
+                    <button class="flex-1 px-2 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded-md">Pending (6)</button>
+                    <button class="flex-1 px-2 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded-md">Done (4)</button>
+                </div>
+            </div>
+
+            <!-- Submission List -->
+            <div class="flex-1 overflow-y-auto scrollbar-thin">
+                <!-- Submission Item - Active -->
+                <div class="submission-item active p-3 cursor-pointer border-b border-gray-50">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-800">#...150935</p>
+                            <p class="text-xs text-gray-500 mt-0.5">BUTCH'S STORE</p>
+                        </div>
+                        <span class="px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-700 rounded">Pending</span>
+                    </div>
+                    <div class="flex items-center justify-between mt-2">
+                        <span class="text-xs text-gray-400">BFKJ87693581</span>
+                        <span class="text-xs text-gray-400">12:51 PM</span>
+                    </div>
+                </div>
+
+                <!-- Submission Item - Checked -->
+                <div class="submission-item p-3 cursor-pointer border-b border-gray-50" onclick="selectSubmission(this)">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-800">#...150934</p>
+                            <p class="text-xs text-gray-500 mt-0.5">MARIA'S SARI-SARI</p>
+                        </div>
+                        <span class="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded">Approved</span>
+                    </div>
+                    <div class="flex items-center justify-between mt-2">
+                        <span class="text-xs text-gray-400">ABCD12345678</span>
+                        <span class="text-xs text-gray-400">12:45 PM</span>
+                    </div>
+                    <div class="flex items-center mt-2 pt-2 border-t border-gray-100">
+                        <div class="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center text-white text-xs mr-2">J</div>
+                        <span class="text-xs text-gray-500">Checked by john@co.com</span>
+                    </div>
+                </div>
+
+                <!-- Submission Item - Rejected -->
+                <div class="submission-item p-3 cursor-pointer border-b border-gray-50" onclick="selectSubmission(this)">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-800">#...150933</p>
+                            <p class="text-xs text-gray-500 mt-0.5">TONY'S STORE</p>
+                        </div>
+                        <span class="px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700 rounded">Rejected</span>
+                    </div>
+                    <div class="flex items-center justify-between mt-2">
+                        <span class="text-xs text-gray-400">WXYZ98765432</span>
+                        <span class="text-xs text-gray-400">12:40 PM</span>
+                    </div>
+                </div>
+
+                <!-- More pending items -->
+                <div class="submission-item p-3 cursor-pointer border-b border-gray-50" onclick="selectSubmission(this)">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-800">#...150936</p>
+                            <p class="text-xs text-gray-500 mt-0.5">LINA'S VARIETY</p>
+                        </div>
+                        <span class="px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-700 rounded">Pending</span>
+                    </div>
+                    <div class="flex items-center justify-between mt-2">
+                        <span class="text-xs text-gray-400">EFGH11112222</span>
+                        <span class="text-xs text-gray-400">12:55 PM</span>
+                    </div>
+                </div>
+
+                <div class="submission-item p-3 cursor-pointer border-b border-gray-50" onclick="selectSubmission(this)">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-800">#...150937</p>
+                            <p class="text-xs text-gray-500 mt-0.5">PEDRO'S CORNER</p>
+                        </div>
+                        <span class="px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-700 rounded">Pending</span>
+                    </div>
+                    <div class="flex items-center justify-between mt-2">
+                        <span class="text-xs text-gray-400">IJKL33334444</span>
+                        <span class="text-xs text-gray-400">1:02 PM</span>
+                    </div>
+                </div>
+
+                <div class="submission-item p-3 cursor-pointer border-b border-gray-50" onclick="selectSubmission(this)">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-sm font-medium text-gray-800">#...150938</p>
+                            <p class="text-xs text-gray-500 mt-0.5">ROSE MINI MART</p>
+                        </div>
+                        <span class="px-2 py-0.5 text-xs font-medium bg-orange-100 text-orange-700 rounded">Reserved</span>
+                    </div>
+                    <div class="flex items-center justify-between mt-2">
+                        <span class="text-xs text-gray-400">MNOP55556666</span>
+                        <span class="text-xs text-gray-400">1:10 PM</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Batch Actions -->
+            <div class="p-3 border-t border-gray-200 bg-gray-50">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs text-gray-500">Batch: 4/10 checked</span>
+                    <button class="text-xs text-indigo-600 hover:text-indigo-800">Load more</button>
+                </div>
+                <button class="w-full px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50" disabled>
+                    Submit Batch
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 flex flex-col overflow-hidden">
+            <!-- Tabs -->
+            <div class="bg-white border-b border-gray-200 px-4">
+                <nav class="flex space-x-6">
+                    <button class="py-3 px-1 text-sm font-medium text-indigo-600 border-b-2 border-indigo-600">Overview</button>
+                    <button class="py-3 px-1 text-sm font-medium text-gray-500 hover:text-gray-700">Answers (64)</button>
+                    <button class="py-3 px-1 text-sm font-medium text-gray-500 hover:text-gray-700">Images (4)</button>
+                    <button class="py-3 px-1 text-sm font-medium text-gray-500 hover:text-gray-700">Timeline</button>
+                </nav>
+            </div>
+
+            <!-- Content -->
+            <div class="flex-1 overflow-y-auto p-6 scrollbar-thin">
+                <div class="max-w-5xl mx-auto">
+                    <!-- Header -->
+                    <div class="flex items-start justify-between mb-6">
+                        <div>
+                            <h2 class="text-xl font-semibold text-gray-800">Submission #202602092652150935</h2>
+                            <p class="text-sm text-gray-500 mt-1">Submitted Feb 9, 2026 at 12:51 PM via Android</p>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button class="p-2 text-gray-400 hover:text-gray-600 border border-gray-200 rounded-lg">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                                </svg>
+                            </button>
+                            <button class="p-2 text-gray-400 hover:text-gray-600 border border-gray-200 rounded-lg">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Quick Info Cards -->
+                    <div class="grid grid-cols-4 gap-4 mb-6">
+                        <div class="bg-white rounded-xl border border-gray-200 p-4">
+                            <p class="text-xs text-gray-500 uppercase tracking-wide">Store</p>
+                            <p class="text-lg font-semibold text-gray-800 mt-1">BUTCH'S STORE</p>
+                            <p class="text-xs text-gray-500 mt-1">San Roque, Angono, Rizal</p>
+                        </div>
+                        <div class="bg-white rounded-xl border border-gray-200 p-4">
+                            <p class="text-xs text-gray-500 uppercase tracking-wide">User</p>
+                            <p class="text-lg font-semibold text-gray-800 mt-1">BFKJ87693581</p>
+                            <p class="text-xs text-green-600 mt-1">12 approved, 2 rejected</p>
+                        </div>
+                        <div class="bg-white rounded-xl border border-gray-200 p-4">
+                            <p class="text-xs text-gray-500 uppercase tracking-wide">Reward</p>
+                            <p class="text-lg font-semibold text-gray-800 mt-1">PHP 50</p>
+                            <p class="text-xs text-gray-500 mt-1">Cash</p>
+                        </div>
+                        <div class="bg-white rounded-xl border border-gray-200 p-4">
+                            <p class="text-xs text-gray-500 uppercase tracking-wide">Time Spent</p>
+                            <p class="text-lg font-semibold text-gray-800 mt-1">5m 45s</p>
+                            <p class="text-xs text-gray-500 mt-1">13 pages</p>
+                        </div>
+                    </div>
+
+                    <!-- Alerts -->
+                    <div class="mb-6 space-y-2">
+                        <div class="flex items-center p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <svg class="w-5 h-5 text-yellow-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                            </svg>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium text-yellow-800">Selfie images uploaded from gallery</p>
+                                <p class="text-xs text-yellow-600">Store selfie and final selfie were not taken live</p>
+                            </div>
+                            <button class="text-xs text-yellow-700 underline">Dismiss</button>
+                        </div>
+                    </div>
+
+                    <!-- Two Column Layout -->
+                    <div class="grid grid-cols-2 gap-6">
+                        <!-- Images Preview -->
+                        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                            <div class="p-4 border-b border-gray-100 flex items-center justify-between">
+                                <h3 class="font-medium text-gray-800">Images</h3>
+                                <button class="text-sm text-indigo-600 hover:text-indigo-800">View all</button>
+                            </div>
+                            <div class="p-4 grid grid-cols-2 gap-3">
+                                <div class="relative rounded-lg overflow-hidden group cursor-pointer">
+                                    <img src="https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400" class="w-full h-32 object-cover">
+                                    <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/>
+                                        </svg>
+                                    </div>
+                                    <span class="absolute bottom-1 left-1 px-1.5 py-0.5 bg-yellow-500 text-white text-xs rounded">Gallery</span>
+                                </div>
+                                <div class="relative rounded-lg overflow-hidden group cursor-pointer">
+                                    <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400" class="w-full h-32 object-cover">
+                                    <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/>
+                                        </svg>
+                                    </div>
+                                    <span class="absolute bottom-1 left-1 px-1.5 py-0.5 bg-green-500 text-white text-xs rounded">Camera</span>
+                                </div>
+                                <div class="relative rounded-lg overflow-hidden group cursor-pointer">
+                                    <img src="https://images.unsplash.com/photo-1527525443983-cf80e8a81ca6?w=400" class="w-full h-32 object-cover">
+                                    <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/>
+                                        </svg>
+                                    </div>
+                                    <span class="absolute bottom-1 left-1 px-1.5 py-0.5 bg-green-500 text-white text-xs rounded">Camera</span>
+                                </div>
+                                <div class="relative rounded-lg overflow-hidden group cursor-pointer">
+                                    <img src="https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=400" class="w-full h-32 object-cover">
+                                    <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/>
+                                        </svg>
+                                    </div>
+                                    <span class="absolute bottom-1 left-1 px-1.5 py-0.5 bg-yellow-500 text-white text-xs rounded">Gallery</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Key Answers -->
+                        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+                            <div class="p-4 border-b border-gray-100 flex items-center justify-between">
+                                <h3 class="font-medium text-gray-800">Key Answers</h3>
+                                <button class="text-sm text-indigo-600 hover:text-indigo-800">View all 64</button>
+                            </div>
+                            <div class="divide-y divide-gray-100 max-h-72 overflow-y-auto">
+                                <div class="p-3 flex justify-between">
+                                    <span class="text-sm text-gray-600">Winston Red - Price/Stick</span>
+                                    <span class="text-sm font-medium">PHP 11</span>
+                                </div>
+                                <div class="p-3 flex justify-between">
+                                    <span class="text-sm text-gray-600">Winston Red - Packs/Week</span>
+                                    <span class="text-sm font-medium">10</span>
+                                </div>
+                                <div class="p-3 flex justify-between">
+                                    <span class="text-sm text-gray-600">Mighty Green - Price/Stick</span>
+                                    <span class="text-sm font-medium">PHP 10</span>
+                                </div>
+                                <div class="p-3 flex justify-between">
+                                    <span class="text-sm text-gray-600">Fortune Green - Price/Stick</span>
+                                    <span class="text-sm font-medium">PHP 10</span>
+                                </div>
+                                <div class="p-3 flex justify-between">
+                                    <span class="text-sm text-gray-600">Camel Red - Price/Stick</span>
+                                    <span class="text-sm font-medium">PHP 9</span>
+                                </div>
+                                <div class="p-3 flex justify-between">
+                                    <span class="text-sm text-gray-600">Purchase Code</span>
+                                    <span class="text-sm font-medium font-mono text-indigo-600">E9AR</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Location Map Placeholder -->
+                    <div class="mt-6 bg-white rounded-xl border border-gray-200 overflow-hidden">
+                        <div class="p-4 border-b border-gray-100">
+                            <h3 class="font-medium text-gray-800">Location Verification</h3>
+                        </div>
+                        <div class="p-4">
+                            <div class="h-48 bg-gray-100 rounded-lg flex items-center justify-center">
+                                <div class="text-center">
+                                    <svg class="w-12 h-12 text-gray-300 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    </svg>
+                                    <p class="text-sm text-gray-500 mt-2">Map: 14.5685, 121.0785</p>
+                                    <p class="text-xs text-green-600 mt-1">Location matches declared address</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Action Bar -->
+            <div class="bg-white border-t border-gray-200 p-4">
+                <div class="max-w-5xl mx-auto flex items-center justify-between">
+                    <!-- Quick Violations -->
+                    <div class="flex items-center space-x-4">
+                        <span class="text-sm text-gray-600">Quick flags:</span>
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" class="w-4 h-4 text-red-500 rounded">
+                            <span class="text-sm text-gray-700">Gallery image</span>
+                        </label>
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" class="w-4 h-4 text-red-500 rounded">
+                            <span class="text-sm text-gray-700">No GPS</span>
+                        </label>
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" class="w-4 h-4 text-red-500 rounded">
+                            <span class="text-sm text-gray-700">Blurry</span>
+                        </label>
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="checkbox" class="w-4 h-4 text-red-500 rounded">
+                            <span class="text-sm text-gray-700">Fraud suspect</span>
+                        </label>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex items-center space-x-3">
+                        <button class="px-4 py-2 text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+                            </svg>
+                            Reserve
+                        </button>
+                        <button class="px-4 py-2 text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/>
+                            </svg>
+                            Skip
+                        </button>
+                        <div class="h-8 w-px bg-gray-200"></div>
+                        <button class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                            Reject
+                        </button>
+                        <button class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                            </svg>
+                            Approve
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function selectSubmission(el) {
+            document.querySelectorAll('.submission-item').forEach(item => item.classList.remove('active'));
+            el.classList.add('active');
+        }
+    </script>
+</body>
+</html>
