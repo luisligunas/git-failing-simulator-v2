@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>My Love</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #6dd7fd;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        .slideshow {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 0.8s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            gap: 15px;
+        }
+
+        .slide.active {
+            opacity: 1;
+        }
+
+        /* Text cards */
+        .slide.text-card {
+            justify-content: center;
+        }
+
+        .slide.text-card h1 {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: 300;
+            text-align: center;
+            letter-spacing: 0.1em;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .slide.text-card.valentine h1 {
+            color: #ff6b8a;
+            font-size: 2rem;
+        }
+
+        /* Image containers with Ken Burns */
+        .image-container {
+            position: relative;
+            overflow: hidden;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.1);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+
+        .image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            will-change: transform;
+        }
+
+        /* Ken Burns animation variants - gentle and varied */
+        @keyframes kb-zoom-in-center {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.06); }
+        }
+
+        @keyframes kb-zoom-out-center {
+            0% { transform: scale(1.06); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes kb-zoom-in-left {
+            0% { transform: scale(1) translate(0, 0); }
+            100% { transform: scale(1.07) translate(-1.5%, 0); }
+        }
+
+        @keyframes kb-zoom-in-right {
+            0% { transform: scale(1) translate(0, 0); }
+            100% { transform: scale(1.07) translate(1.5%, 0); }
+        }
+
+        @keyframes kb-zoom-in-up {
+            0% { transform: scale(1) translate(0, 0); }
+            100% { transform: scale(1.06) translate(0, -1%); }
+        }
+
+        @keyframes kb-zoom-in-down {
+            0% { transform: scale(1) translate(0, 0); }
+            100% { transform: scale(1.06) translate(0, 1%); }
+        }
+
+        @keyframes kb-pan-left {
+            0% { transform: scale(1.04) translate(1%, 0); }
+            100% { transform: scale(1.04) translate(-1%, 0); }
+        }
+
+        @keyframes kb-pan-right {
+            0% { transform: scale(1.04) translate(-1%, 0); }
+            100% { transform: scale(1.04) translate(1%, 0); }
+        }
+
+        @keyframes kb-drift-diagonal-1 {
+            0% { transform: scale(1) translate(0, 0); }
+            100% { transform: scale(1.05) translate(-1%, -0.5%); }
+        }
+
+        @keyframes kb-drift-diagonal-2 {
+            0% { transform: scale(1.05) translate(0, 0); }
+            100% { transform: scale(1) translate(1%, 0.5%); }
+        }
+
+        .image-container img {
+            animation-duration: var(--slide-duration, 3s);
+            animation-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1);
+            animation-fill-mode: both;
+            animation-play-state: paused;
+        }
+
+        .slide.active .image-container img {
+            animation-play-state: running;
+        }
+
+        /* Duo layout - portraits stacked */
+        .slide.duo {
+            padding: 30px 20px;
+        }
+
+        .slide.duo .image-container {
+            width: 85%;
+            max-width: 400px;
+            aspect-ratio: 1/1;
+        }
+
+        /* Trio layout - portraits on top, together below */
+        .slide.trio {
+            padding: 20px 15px;
+        }
+
+        .slide.trio .portraits {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .slide.trio .portraits .image-container {
+            width: 45%;
+            max-width: 200px;
+            aspect-ratio: 1/1;
+        }
+
+        .slide.trio .together {
+            width: 95%;
+            max-width: 450px;
+            aspect-ratio: 1/1;
+        }
+
+        /* Progress bar */
+        .progress-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: rgba(255,255,255,0.3);
+            z-index: 100;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b8a, #ff8fa3);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Play button overlay */
+        .play-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(109, 215, 253, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            cursor: pointer;
+        }
+
+        .play-overlay.hidden {
+            display: none;
+        }
+
+        .play-button {
+            width: 80px;
+            height: 80px;
+            border: 3px solid white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            transition: transform 0.2s, border-color 0.2s;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .play-button:hover {
+            transform: scale(1.1);
+            border-color: #ff6b8a;
+        }
+
+        .play-button::after {
+            content: '';
+            width: 0;
+            height: 0;
+            border-left: 25px solid white;
+            border-top: 15px solid transparent;
+            border-bottom: 15px solid transparent;
+            margin-left: 5px;
+        }
+
+        .play-overlay p {
+            color: rgba(255,255,255,0.8);
+            font-size: 0.9rem;
+        }
+
+        /* Loading state */
+        .loading {
+            color: white;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="play-overlay" id="playOverlay">
+        <div class="play-button"></div>
+        <p>Tap to start</p>
+    </div>
+
+    <div class="slideshow" id="slideshow">
+        <p class="loading">Loading images...</p>
+    </div>
+
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <!-- Background music -->
+    <audio id="backgroundMusic" loop preload="auto">
+        <source src="music.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Narration/Poem -->
+    <audio id="narration" preload="auto">
+        <source src="poem.m4a" type="audio/mp4">
+    </audio>
+
+    <script>
+        // Configuration
+        const CONFIG = {
+            defaultSlideDuration: 2500,
+            crossfadeDuration: 800,
+            titleDuration: 4000,
+            endingDuration: 6000,
+            titleText: 'My Love',
+            valentineText: 'Will You Be My Valentine?'
+        };
+
+        // Animation variations
+        const ANIMATIONS = [
+            'kb-zoom-in-center',
+            'kb-zoom-out-center',
+            'kb-zoom-in-left',
+            'kb-zoom-in-right',
+            'kb-zoom-in-up',
+            'kb-zoom-in-down',
+            'kb-pan-left',
+            'kb-pan-right',
+            'kb-drift-diagonal-1',
+            'kb-drift-diagonal-2'
+        ];
+
+        function getRandomAnimation() {
+            return ANIMATIONS[Math.floor(Math.random() * ANIMATIONS.length)];
+        }
+
+        // Embedded image data
+        const IMAGE_DATA = [
+            {
+                date: "2026-01-01",
+                my_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FESxsHYVECDSKBuFBEZkyzuFCD6B2%2Fimages%2Fcompressed%2F20260101_1200x1200.jpg?alt=media&token=284b1533-b3a3-4478-9594-a613d8224b04",
+                her_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FOHzv4w98UKeOoGE5dclsWmDza642%2Fimages%2Fcompressed%2F20260101_1200x1200.jpg?alt=media&token=59886c38-34c5-405e-b23e-853bef128741",
+                together_picture: ""
+            },
+            {
+                date: "2026-01-02",
+                my_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FESxsHYVECDSKBuFBEZkyzuFCD6B2%2Fimages%2Fcompressed%2F20260102_1200x1200.jpg?alt=media&token=69835153-8094-4e14-8804-9d35994f2ee8",
+                her_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FOHzv4w98UKeOoGE5dclsWmDza642%2Fimages%2Fcompressed%2F20260102_1200x1200.jpg?alt=media&token=83e8470e-08a6-4957-8421-f6c09306bddb",
+                together_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/partnerships%2FESxsHYVECDSKBuFBEZkyzuFCD6B2_OHzv4w98UKeOoGE5dclsWmDza642%2Fshared_images%2Fcompressed%2F20260102_1200x1200.jpg?alt=media&token=bad64281-9a0d-4a18-a191-59a57d7282e3"
+            },
+            {
+                date: "2026-01-03",
+                my_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FESxsHYVECDSKBuFBEZkyzuFCD6B2%2Fimages%2Fcompressed%2F20260103_1200x1200.jpg?alt=media&token=5a18dcbf-a680-44aa-bd02-20c725527310",
+                her_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FOHzv4w98UKeOoGE5dclsWmDza642%2Fimages%2Fcompressed%2F20260103_1200x1200.jpg?alt=media&token=82fc371f-b54e-4633-a62e-56f4ebb9c57e",
+                together_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/partnerships%2FESxsHYVECDSKBuFBEZkyzuFCD6B2_OHzv4w98UKeOoGE5dclsWmDza642%2Fshared_images%2Fcompressed%2F20260103_1200x1200.jpg?alt=media&token=1f1cd7e9-2c92-4036-a845-790ba0a890fb"
+            },
+            {
+                date: "2026-01-04",
+                my_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FESxsHYVECDSKBuFBEZkyzuFCD6B2%2Fimages%2Fcompressed%2F20260104_1200x1200.jpg?alt=media&token=80961630-3ee8-4191-9cc4-0d93f1057bd8",
+                her_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FOHzv4w98UKeOoGE5dclsWmDza642%2Fimages%2Fcompressed%2F20260104_1200x1200.jpg?alt=media&token=212b55ba-8bd9-4ca6-b800-e50ed1422a66",
+                together_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/partnerships%2FESxsHYVECDSKBuFBEZkyzuFCD6B2_OHzv4w98UKeOoGE5dclsWmDza642%2Fshared_images%2Fcompressed%2F20260104_1200x1200.jpg?alt=media&token=c9a33ecf-509a-43f6-a350-73203501da0a"
+            },
+            {
+                date: "2026-01-05",
+                my_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FESxsHYVECDSKBuFBEZkyzuFCD6B2%2Fimages%2Fcompressed%2F20260105_1200x1200.jpg?alt=media&token=2a5b5e68-5eb8-4ac8-88cf-9faecd5d3cc8",
+                her_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FOHzv4w98UKeOoGE5dclsWmDza642%2Fimages%2Fcompressed%2F20260105_1200x1200.jpg?alt=media&token=c5ecf379-e64d-4493-a47e-22545fb0b6d6",
+                together_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/partnerships%2FESxsHYVECDSKBuFBEZkyzuFCD6B2_OHzv4w98UKeOoGE5dclsWmDza642%2Fshared_images%2Fcompressed%2F20260105_1200x1200.jpg?alt=media&token=05caf710-e27c-4b66-b89a-89d4ab6c4947"
+            },
+            {
+                date: "2026-01-06",
+                my_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FESxsHYVECDSKBuFBEZkyzuFCD6B2%2Fimages%2Fcompressed%2F20260106_1200x1200.jpg?alt=media&token=c15ad185-a4fe-4490-8486-a1e0c30b6ed0",
+                her_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FOHzv4w98UKeOoGE5dclsWmDza642%2Fimages%2Fcompressed%2F20260106_1200x1200.jpg?alt=media&token=3be3443f-41e3-402f-a990-c58c881d5d26",
+                together_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/partnerships%2FESxsHYVECDSKBuFBEZkyzuFCD6B2_OHzv4w98UKeOoGE5dclsWmDza642%2Fshared_images%2Fcompressed%2F20260106_1200x1200.jpg?alt=media&token=d5254f35-568e-4a66-8893-60527854d282"
+            },
+            {
+                date: "2026-01-07",
+                my_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FESxsHYVECDSKBuFBEZkyzuFCD6B2%2Fimages%2Fcompressed%2F20260107_1200x1200.jpg?alt=media&token=7f5da52e-405a-4d34-b026-f2a3da698bc6",
+                her_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FOHzv4w98UKeOoGE5dclsWmDza642%2Fimages%2Fcompressed%2F20260107_1200x1200.jpg?alt=media&token=32fa7c20-8d22-4109-9b58-4b272d5e4523",
+                together_picture: ""
+            },
+            {
+                date: "2026-01-08",
+                my_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FESxsHYVECDSKBuFBEZkyzuFCD6B2%2Fimages%2Fcompressed%2F20260108_1200x1200.jpg?alt=media&token=cdd84f42-d9b9-4402-8c15-931b5fea8c50",
+                her_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FOHzv4w98UKeOoGE5dclsWmDza642%2Fimages%2Fcompressed%2F20260108_1200x1200.jpg?alt=media&token=95b0b806-d70b-4802-bed1-cc0a3b44c914",
+                together_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/partnerships%2FESxsHYVECDSKBuFBEZkyzuFCD6B2_OHzv4w98UKeOoGE5dclsWmDza642%2Fshared_images%2Fcompressed%2F20260108_1200x1200.jpg?alt=media&token=e186db6d-4fb0-4653-8575-faf221780ca2"
+            },
+            {
+                date: "2026-01-09",
+                my_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FESxsHYVECDSKBuFBEZkyzuFCD6B2%2Fimages%2Fcompressed%2F20260109_1200x1200.jpg?alt=media&token=ac4a5bf8-0540-4423-86e9-b489ff15d101",
+                her_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FOHzv4w98UKeOoGE5dclsWmDza642%2Fimages%2Fcompressed%2F20260109_1200x1200.jpg?alt=media&token=cd02a785-5e90-45c8-b5af-64e78d1a7105",
+                together_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/partnerships%2FESxsHYVECDSKBuFBEZkyzuFCD6B2_OHzv4w98UKeOoGE5dclsWmDza642%2Fshared_images%2Fcompressed%2F20260109_1200x1200.jpg?alt=media&token=9f74e671-6061-48d6-9d9f-a5e63e47f3e2"
+            },
+            {
+                date: "2026-01-10",
+                my_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FESxsHYVECDSKBuFBEZkyzuFCD6B2%2Fimages%2Fcompressed%2F20260110_1200x1200.jpg?alt=media&token=4ba2158b-a30f-47a9-a90b-b201371c99d4",
+                her_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FOHzv4w98UKeOoGE5dclsWmDza642%2Fimages%2Fcompressed%2F20260110_1200x1200.jpg?alt=media&token=c53b9174-ebb9-46c7-8162-d98048395381",
+                together_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/partnerships%2FESxsHYVECDSKBuFBEZkyzuFCD6B2_OHzv4w98UKeOoGE5dclsWmDza642%2Fshared_images%2Fcompressed%2F20260110_1200x1200.jpg?alt=media&token=345fe108-5666-42b7-80c7-7b103aac27db"
+            },
+            {
+                date: "2026-01-11",
+                my_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FESxsHYVECDSKBuFBEZkyzuFCD6B2%2Fimages%2Fcompressed%2F20260111_1200x1200.jpg?alt=media&token=ee958f1d-f060-4e54-b4db-c1ee8104744c",
+                her_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FOHzv4w98UKeOoGE5dclsWmDza642%2Fimages%2Fcompressed%2F20260111_1200x1200.jpg?alt=media&token=c331542c-ab1d-4cf2-8724-c3932f14bfe3",
+                together_picture: ""
+            },
+            {
+                date: "2026-01-12",
+                my_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FESxsHYVECDSKBuFBEZkyzuFCD6B2%2Fimages%2Fcompressed%2F20260112_1200x1200.jpg?alt=media&token=4e4a7740-3681-480e-b73b-5ad43d016e5b",
+                her_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FOHzv4w98UKeOoGE5dclsWmDza642%2Fimages%2Fcompressed%2F20260112_1200x1200.jpg?alt=media&token=6fcd3b46-b8b6-4e5d-a6e3-2acbf7a33eae",
+                together_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/partnerships%2FESxsHYVECDSKBuFBEZkyzuFCD6B2_OHzv4w98UKeOoGE5dclsWmDza642%2Fshared_images%2Fcompressed%2F20260112_1200x1200.jpg?alt=media&token=0da2acd5-aaf9-47e1-88ce-1127499055dc"
+            },
+            {
+                date: "2026-01-13",
+                my_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FESxsHYVECDSKBuFBEZkyzuFCD6B2%2Fimages%2Fcompressed%2F20260113_1200x1200.jpg?alt=media&token=8dd04caa-e0ec-4a55-9d9d-9be0573238b5",
+                her_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FOHzv4w98UKeOoGE5dclsWmDza642%2Fimages%2Fcompressed%2F20260113_1200x1200.jpg?alt=media&token=f925bcb1-3450-44a8-9587-17153ac0f84d",
+                together_picture: ""
+            },
+            {
+                date: "2026-01-15",
+                my_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FESxsHYVECDSKBuFBEZkyzuFCD6B2%2Fimages%2Fcompressed%2F20260115_1200x1200.jpg?alt=media&token=6a194d54-e308-41fb-b2dd-9e9bcbee9aec",
+                her_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FOHzv4w98UKeOoGE5dclsWmDza642%2Fimages%2Fcompressed%2F20260115_1200x1200.jpg?alt=media&token=f294c23c-57dc-415a-8f1e-d574f5bea3e4",
+                together_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/partnerships%2FESxsHYVECDSKBuFBEZkyzuFCD6B2_OHzv4w98UKeOoGE5dclsWmDza642%2Fshared_images%2Fcompressed%2F20260115_1200x1200.jpg?alt=media&token=5e42254a-8356-4d04-9013-00ed07c9372e"
+            },
+            {
+                date: "2026-01-16",
+                my_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FESxsHYVECDSKBuFBEZkyzuFCD6B2%2Fimages%2Fcompressed%2F20260116_1200x1200.jpg?alt=media&token=1bfc40d5-bad9-43e0-a235-ce97cafed052",
+                her_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FOHzv4w98UKeOoGE5dclsWmDza642%2Fimages%2Fcompressed%2F20260116_1200x1200.jpg?alt=media&token=119b0e88-19a3-4101-993d-a2053a2eeef4",
+                together_picture: ""
+            },
+            {
+                date: "2026-01-17",
+                my_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FESxsHYVECDSKBuFBEZkyzuFCD6B2%2Fimages%2Fcompressed%2F20260117_1200x1200.jpg?alt=media&token=a4aad6b3-7010-4e9a-a5d8-eb0986784003",
+                her_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FOHzv4w98UKeOoGE5dclsWmDza642%2Fimages%2Fcompressed%2F20260117_1200x1200.jpg?alt=media&token=87193f7d-1e7d-4d17-a787-fd41a92fee96",
+                together_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/partnerships%2FESxsHYVECDSKBuFBEZkyzuFCD6B2_OHzv4w98UKeOoGE5dclsWmDza642%2Fshared_images%2Fcompressed%2F20260117_1200x1200.jpg?alt=media&token=2dab27b0-f7c2-4975-8133-a8b98fa3be2b"
+            },
+            {
+                date: "2026-01-18",
+                my_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FESxsHYVECDSKBuFBEZkyzuFCD6B2%2Fimages%2Fcompressed%2F20260118_1200x1200.jpg?alt=media&token=cda6188c-e77f-463d-b3fe-35feb8327984",
+                her_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FOHzv4w98UKeOoGE5dclsWmDza642%2Fimages%2Fcompressed%2F20260118_1200x1200.jpg?alt=media&token=648ed858-85af-4774-a6e8-2490f3243bc0",
+                together_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/partnerships%2FESxsHYVECDSKBuFBEZkyzuFCD6B2_OHzv4w98UKeOoGE5dclsWmDza642%2Fshared_images%2Fcompressed%2F20260118_1200x1200.jpg?alt=media&token=7f388769-d204-4c1f-8a4f-0187985e8d1c"
+            },
+            {
+                date: "2026-01-19",
+                my_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FESxsHYVECDSKBuFBEZkyzuFCD6B2%2Fimages%2Fcompressed%2F20260119_1200x1200.jpg?alt=media&token=544dca1e-005d-4fe6-ad81-661d1ce186a0",
+                her_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FOHzv4w98UKeOoGE5dclsWmDza642%2Fimages%2Fcompressed%2F20260119_1200x1200.jpg?alt=media&token=50fa7d61-4bf5-45bf-a8f8-477f71239909",
+                together_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/partnerships%2FESxsHYVECDSKBuFBEZkyzuFCD6B2_OHzv4w98UKeOoGE5dclsWmDza642%2Fshared_images%2Fcompressed%2F20260119_1200x1200.jpg?alt=media&token=852314cf-3501-4f26-8500-ebe2ae3bff78"
+            },
+            {
+                date: "2026-01-20",
+                my_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FESxsHYVECDSKBuFBEZkyzuFCD6B2%2Fimages%2Fcompressed%2F20260120_1200x1200.jpg?alt=media&token=d11c411c-0de7-497a-9ae6-ee819d3d33de",
+                her_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FOHzv4w98UKeOoGE5dclsWmDza642%2Fimages%2Fcompressed%2F20260120_1200x1200.jpg?alt=media&token=db6d1deb-3d27-4b79-9c14-bca30e27d124",
+                together_picture: ""
+            },
+            {
+                date: "2026-01-21",
+                my_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FESxsHYVECDSKBuFBEZkyzuFCD6B2%2Fimages%2Fcompressed%2F20260121_1200x1200.jpg?alt=media&token=b47b5523-94df-47d7-aca4-e34b7eff9c7e",
+                her_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FOHzv4w98UKeOoGE5dclsWmDza642%2Fimages%2Fcompressed%2F20260121_1200x1200.jpg?alt=media&token=8cbe5f40-645a-47a7-8d54-51236b20e6ef",
+                together_picture: ""
+            },
+            {
+                date: "2026-01-22",
+                my_picture: "https://firebasestorage.googleapis.com:443/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FESxsHYVECDSKBuFBEZkyzuFCD6B2%2Fimages%2F20260122.jpg?alt=media&token=ffe5205e-bdb0-4401-94cc-dd6454b6942f",
+                her_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FOHzv4w98UKeOoGE5dclsWmDza642%2Fimages%2Fcompressed%2F20260122_1200x1200.jpg?alt=media&token=d0fdb3cf-d240-4ed3-a8b3-72216ad8f03a",
+                together_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/partnerships%2FESxsHYVECDSKBuFBEZkyzuFCD6B2_OHzv4w98UKeOoGE5dclsWmDza642%2Fshared_images%2Fcompressed%2F20260122_1200x1200.jpg?alt=media&token=56e952de-9e6f-43ec-801d-bcc22aa2055f"
+            },
+            {
+                date: "2026-01-23",
+                my_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FESxsHYVECDSKBuFBEZkyzuFCD6B2%2Fimages%2Fcompressed%2F20260123_1200x1200.jpg?alt=media&token=2037436d-5e0e-42cf-88c7-4bf2c6ed8233",
+                her_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FOHzv4w98UKeOoGE5dclsWmDza642%2Fimages%2Fcompressed%2F20260123_1200x1200.jpg?alt=media&token=0bf3b32d-0022-44cd-b5a3-14fe7c48b28a",
+                together_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/partnerships%2FESxsHYVECDSKBuFBEZkyzuFCD6B2_OHzv4w98UKeOoGE5dclsWmDza642%2Fshared_images%2Fcompressed%2F20260123_1200x1200.jpg?alt=media&token=257e50ad-efc7-416f-9aeb-aa98300719e4"
+            },
+            {
+                date: "2026-01-24",
+                my_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FESxsHYVECDSKBuFBEZkyzuFCD6B2%2Fimages%2Fcompressed%2F20260124_1200x1200.jpg?alt=media&token=8240b2e5-96ee-4378-8cdd-749991031f71",
+                her_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FOHzv4w98UKeOoGE5dclsWmDza642%2Fimages%2Fcompressed%2F20260124_1200x1200.jpg?alt=media&token=2eb74a97-8a91-46f4-96c2-5e595b367b4c",
+                together_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/partnerships%2FESxsHYVECDSKBuFBEZkyzuFCD6B2_OHzv4w98UKeOoGE5dclsWmDza642%2Fshared_images%2Fcompressed%2F20260124_1200x1200.jpg?alt=media&token=8389622c-6f1b-4b05-8b46-6effb647486c"
+            },
+            {
+                date: "2026-01-27",
+                my_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FESxsHYVECDSKBuFBEZkyzuFCD6B2%2Fimages%2Fcompressed%2F20260127_1200x1200.jpg?alt=media&token=c6eaf0f7-8ff7-4a5f-92a5-36d40c310219",
+                her_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FOHzv4w98UKeOoGE5dclsWmDza642%2Fimages%2Fcompressed%2F20260127_1200x1200.jpg?alt=media&token=dc1c4bb6-f1dd-4f84-bc0a-abee40185f62",
+                together_picture: "https://firebasestorage.googleapis.com:443/v0/b/cleaning-up-bottles.firebasestorage.app/o/partnerships%2FESxsHYVECDSKBuFBEZkyzuFCD6B2_OHzv4w98UKeOoGE5dclsWmDza642%2Fshared_images%2F20260127.jpg?alt=media&token=4e5a0797-6f4b-47f4-8935-27d06a40af68"
+            },
+            {
+                date: "2026-01-28",
+                my_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FESxsHYVECDSKBuFBEZkyzuFCD6B2%2Fimages%2Fcompressed%2F20260128_1200x1200.jpg?alt=media&token=16c217b6-76a4-4d6c-bebe-964dfdd7c9cc",
+                her_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FOHzv4w98UKeOoGE5dclsWmDza642%2Fimages%2Fcompressed%2F20260128_1200x1200.jpg?alt=media&token=ce7a6753-6006-440b-aa6e-67b53851cb11",
+                together_picture: ""
+            },
+            {
+                date: "2026-01-30",
+                my_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FESxsHYVECDSKBuFBEZkyzuFCD6B2%2Fimages%2Fcompressed%2F20260130_1200x1200.jpg?alt=media&token=58b44f12-9dd3-4c15-a5d3-f5c23742fbf3",
+                her_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FOHzv4w98UKeOoGE5dclsWmDza642%2Fimages%2Fcompressed%2F20260130_1200x1200.jpg?alt=media&token=e2c38fc9-68b6-49c6-822a-4891b87c48af",
+                together_picture: ""
+            },
+            {
+                date: "2026-01-31",
+                my_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FESxsHYVECDSKBuFBEZkyzuFCD6B2%2Fimages%2Fcompressed%2F20260131_1200x1200.jpg?alt=media&token=83d8c080-8408-4c33-826f-287da9474660",
+                her_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FOHzv4w98UKeOoGE5dclsWmDza642%2Fimages%2Fcompressed%2F20260131_1200x1200.jpg?alt=media&token=453c8fb8-f369-4827-91d1-5f77670c54a9",
+                together_picture: "https://firebasestorage.googleapis.com:443/v0/b/cleaning-up-bottles.firebasestorage.app/o/partnerships%2FESxsHYVECDSKBuFBEZkyzuFCD6B2_OHzv4w98UKeOoGE5dclsWmDza642%2Fshared_images%2F20260131.jpg?alt=media&token=7cc6069e-f4ad-4fa4-b6d2-52bc85517315"
+            },
+            {
+                date: "2026-02-01",
+                my_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FESxsHYVECDSKBuFBEZkyzuFCD6B2%2Fimages%2Fcompressed%2F20260201_1200x1200.jpg?alt=media&token=9b16976d-8806-4f98-9bf0-18ac61f733a3",
+                her_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FOHzv4w98UKeOoGE5dclsWmDza642%2Fimages%2Fcompressed%2F20260201_1200x1200.jpg?alt=media&token=6faac827-be0a-447d-8867-683260fdbfa4",
+                together_picture: "https://firebasestorage.googleapis.com:443/v0/b/cleaning-up-bottles.firebasestorage.app/o/partnerships%2FESxsHYVECDSKBuFBEZkyzuFCD6B2_OHzv4w98UKeOoGE5dclsWmDza642%2Fshared_images%2F20260201.jpg?alt=media&token=73ee7420-cd1f-497c-b751-8512c224982b"
+            },
+            {
+                date: "2026-02-02",
+                my_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FESxsHYVECDSKBuFBEZkyzuFCD6B2%2Fimages%2Fcompressed%2F20260202_1200x1200.jpg?alt=media&token=d5a2edd0-1f3b-46b0-85a0-6527dd34baa2",
+                her_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FOHzv4w98UKeOoGE5dclsWmDza642%2Fimages%2Fcompressed%2F20260202_1200x1200.jpg?alt=media&token=dabe3cde-bb7f-494d-a214-afcaeae6b363",
+                together_picture: "https://firebasestorage.googleapis.com:443/v0/b/cleaning-up-bottles.firebasestorage.app/o/partnerships%2FESxsHYVECDSKBuFBEZkyzuFCD6B2_OHzv4w98UKeOoGE5dclsWmDza642%2Fshared_images%2F20260202.jpg?alt=media&token=1572b90b-8798-4a70-a70b-3920c2c56dea"
+            },
+            {
+                date: "2026-02-03",
+                my_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FESxsHYVECDSKBuFBEZkyzuFCD6B2%2Fimages%2Fcompressed%2F20260203_1200x1200.jpg?alt=media&token=d2090edc-9ea5-4810-b9d9-20f65018e7ef",
+                her_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FOHzv4w98UKeOoGE5dclsWmDza642%2Fimages%2Fcompressed%2F20260203_1200x1200.jpg?alt=media&token=a9aeaf1e-8a13-493d-9cb4-5d95e22c8d4f",
+                together_picture: "https://firebasestorage.googleapis.com:443/v0/b/cleaning-up-bottles.firebasestorage.app/o/partnerships%2FESxsHYVECDSKBuFBEZkyzuFCD6B2_OHzv4w98UKeOoGE5dclsWmDza642%2Fshared_images%2F20260203.jpg?alt=media&token=1983b57f-69f4-4830-8974-8375641963fc"
+            },
+            {
+                date: "2026-02-05",
+                my_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FESxsHYVECDSKBuFBEZkyzuFCD6B2%2Fimages%2Fcompressed%2F20260205_1200x1200.jpg?alt=media&token=168f6965-7cb0-4311-aeef-538c86fc110e",
+                her_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FOHzv4w98UKeOoGE5dclsWmDza642%2Fimages%2Fcompressed%2F20260205_1200x1200.jpg?alt=media&token=2e609261-4fba-40a4-ac48-90a6564b85a3",
+                together_picture: "https://firebasestorage.googleapis.com:443/v0/b/cleaning-up-bottles.firebasestorage.app/o/partnerships%2FESxsHYVECDSKBuFBEZkyzuFCD6B2_OHzv4w98UKeOoGE5dclsWmDza642%2Fshared_images%2F20260205.jpg?alt=media&token=1ec0a4b2-8ecc-4052-be52-958f4ace82b1"
+            },
+            {
+                date: "2026-02-07",
+                my_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FESxsHYVECDSKBuFBEZkyzuFCD6B2%2Fimages%2Fcompressed%2F20260207_1200x1200.jpg?alt=media&token=43f69e6c-ba93-4320-a03b-008f30917e66",
+                her_picture: "https://firebasestorage.googleapis.com/v0/b/cleaning-up-bottles.firebasestorage.app/o/users%2FOHzv4w98UKeOoGE5dclsWmDza642%2Fimages%2Fcompressed%2F20260207_1200x1200.jpg?alt=media&token=6fe619ef-bac8-403b-ba6b-e7e69b18b3bf",
+                together_picture: "https://firebasestorage.googleapis.com:443/v0/b/cleaning-up-bottles.firebasestorage.app/o/partnerships%2FESxsHYVECDSKBuFBEZkyzuFCD6B2_OHzv4w98UKeOoGE5dclsWmDza642%2Fshared_images%2F20260207.jpg?alt=media&token=48541fb2-cd38-4984-9e18-e130131ceb90"
+            }
+        ];
+
+        let slides = [];
+        let currentSlide = 0;
+        let slideTimer = null;
+        let slideDuration = CONFIG.defaultSlideDuration;
+
+        // Preload an image
+        function preloadImage(url) {
+            return new Promise((resolve, reject) => {
+                if (!url) { resolve(null); return; }
+                const img = new Image();
+                img.onload = () => resolve(url);
+                img.onerror = () => resolve(null); // Don't fail on error
+                img.src = url;
+            });
+        }
+
+        // Create slide HTML
+        function createSlide(type, data) {
+            const slide = document.createElement('div');
+            slide.className = `slide ${type}`;
+            slide.style.setProperty('--slide-duration', `${slideDuration}ms`);
+
+            if (type === 'text-card') {
+                slide.innerHTML = `<h1>${data.text}</h1>`;
+                if (data.isValentine) slide.classList.add('valentine');
+            } else if (type === 'duo') {
+                const anim1 = getRandomAnimation();
+                const anim2 = getRandomAnimation();
+                slide.innerHTML = `
+                    <div class="image-container"><img src="${data.her_picture}" alt="" style="animation-name: ${anim1}"></div>
+                    <div class="image-container"><img src="${data.my_picture}" alt="" style="animation-name: ${anim2}"></div>
+                `;
+            } else if (type === 'trio') {
+                const anim1 = getRandomAnimation();
+                const anim2 = getRandomAnimation();
+                const anim3 = getRandomAnimation();
+                slide.innerHTML = `
+                    <div class="portraits">
+                        <div class="image-container"><img src="${data.her_picture}" alt="" style="animation-name: ${anim1}"></div>
+                        <div class="image-container"><img src="${data.my_picture}" alt="" style="animation-name: ${anim2}"></div>
+                    </div>
+                    <div class="image-container together"><img src="${data.together_picture}" alt="" style="animation-name: ${anim3}"></div>
+                `;
+            }
+
+            return slide;
+        }
+
+        // Build slideshow
+        function buildSlideshow() {
+            const slideshow = document.getElementById('slideshow');
+            slideshow.innerHTML = '';
+            slides = [];
+
+            // Sort by date
+            const entries = IMAGE_DATA.sort((a, b) => a.date.localeCompare(b.date));
+
+            // Title slide
+            const titleSlide = createSlide('text-card', { text: CONFIG.titleText });
+            slideshow.appendChild(titleSlide);
+            slides.push({ element: titleSlide, duration: CONFIG.titleDuration });
+
+            // Image slides
+            for (const entry of entries) {
+                const type = entry.together_picture ? 'trio' : 'duo';
+                const slide = createSlide(type, entry);
+                slideshow.appendChild(slide);
+
+                // Trio slides get slightly more time
+                const duration = type === 'trio' ? slideDuration * 1.3 : slideDuration;
+                slides.push({ element: slide, duration });
+            }
+
+            // Valentine ending slide
+            const endSlide = createSlide('text-card', { text: CONFIG.valentineText, isValentine: true });
+            slideshow.appendChild(endSlide);
+            slides.push({ element: endSlide, duration: CONFIG.endingDuration });
+
+            // Show first slide
+            slides[0].element.classList.add('active');
+        }
+
+        // Update progress bar
+        function updateProgress() {
+            const progress = ((currentSlide + 1) / slides.length) * 100;
+            document.getElementById('progressBar').style.width = `${progress}%`;
+        }
+
+        // Reset animations on a slide by forcing reflow
+        function resetAnimations(slideElement) {
+            const images = slideElement.querySelectorAll('img');
+            images.forEach(img => {
+                // Store current animation
+                const anim = img.style.animationName;
+                // Remove animation
+                img.style.animationName = 'none';
+                // Force reflow
+                img.offsetHeight;
+                // Restore animation
+                img.style.animationName = anim;
+            });
+        }
+
+        // Go to next slide
+        function nextSlide() {
+            if (currentSlide >= slides.length - 1) {
+                // End of slideshow
+                clearTimeout(slideTimer);
+                return;
+            }
+
+            slides[currentSlide].element.classList.remove('active');
+            currentSlide++;
+
+            // Reset animations before showing
+            resetAnimations(slides[currentSlide].element);
+
+            // Update Ken Burns duration for current slide
+            slides[currentSlide].element.style.setProperty('--slide-duration', `${slides[currentSlide].duration}ms`);
+
+            slides[currentSlide].element.classList.add('active');
+
+            updateProgress();
+
+            // Schedule next slide
+            slideTimer = setTimeout(nextSlide, slides[currentSlide].duration);
+        }
+
+        // Calculate slide durations based on audio length
+        function adjustTimingForAudio(audioDuration) {
+            // We want the valentine slide to appear 5 seconds before audio ends
+            const timeBeforeEnd = 5000; // 5 seconds in ms
+            const valentineSlideStart = (audioDuration * 1000) - timeBeforeEnd;
+
+            // Time available for title + content slides (excluding valentine ending)
+            const contentSlides = slides.slice(1, -1); // exclude title and ending
+            const titleDuration = slides[0].duration;
+            const availableTime = valentineSlideStart - titleDuration;
+
+            // Count trio vs duo slides for weighted distribution
+            let totalWeight = 0;
+            contentSlides.forEach((s, i) => {
+                const entry = IMAGE_DATA[i];
+                totalWeight += entry && entry.together_picture ? 1.3 : 1.0;
+            });
+
+            const baseTime = availableTime / totalWeight;
+
+            // Update each content slide's duration
+            contentSlides.forEach((s, i) => {
+                const entry = IMAGE_DATA[i];
+                const weight = entry && entry.together_picture ? 1.3 : 1.0;
+                s.duration = baseTime * weight;
+            });
+        }
+
+        // Start slideshow
+        function startSlideshow() {
+            document.getElementById('playOverlay').classList.add('hidden');
+
+            // Start background music at 0:20
+            const music = document.getElementById('backgroundMusic');
+            if (music) {
+                music.volume = 0.15;
+                music.currentTime = 20; // Start at 20 seconds
+                music.play().catch(() => {});
+            }
+
+            // Start narration and adjust timing
+            const narration = document.getElementById('narration');
+            if (narration && narration.duration) {
+                adjustTimingForAudio(narration.duration);
+                narration.volume = 1.0;
+                narration.play().catch(() => {});
+            }
+
+            // Reset first slide animations
+            resetAnimations(slides[0].element);
+
+            updateProgress();
+            slideTimer = setTimeout(nextSlide, slides[0].duration);
+        }
+
+        // Wait for audio to load
+        function loadAudio(audioElement) {
+            return new Promise(resolve => {
+                if (audioElement.readyState >= 2) {
+                    resolve(audioElement.duration);
+                    return;
+                }
+                audioElement.addEventListener('loadedmetadata', () => {
+                    resolve(audioElement.duration);
+                }, { once: true });
+                audioElement.addEventListener('error', () => {
+                    resolve(null);
+                }, { once: true });
+                // Timeout fallback
+                setTimeout(() => resolve(null), 3000);
+            });
+        }
+
+        // Initialize
+        async function init() {
+            const slideshow = document.getElementById('slideshow');
+            slideshow.innerHTML = '<p class="loading">Loading...</p>';
+
+            // Preload all images
+            const allUrls = IMAGE_DATA.flatMap(e =>
+                [e.my_picture, e.her_picture, e.together_picture].filter(Boolean)
+            );
+
+            await Promise.all(allUrls.map(url => preloadImage(url)));
+
+            // Preload narration audio
+            const narration = document.getElementById('narration');
+            if (narration) {
+                narration.load();
+                await loadAudio(narration);
+            }
+
+            // Build slideshow
+            buildSlideshow();
+
+            // Set up click to start
+            document.getElementById('playOverlay').addEventListener('click', startSlideshow);
+        }
+
+        init();
+    </script>
+</body>
+</html>
