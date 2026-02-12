@@ -258,7 +258,7 @@
             bottom: 20px;
             right: 20px;
             background: rgba(0, 0, 0, 0.6);
-            padding: 15px;
+            padding: 30px 15px 15px 15px;
             border-radius: 12px;
             z-index: 150;
             display: none;
@@ -302,6 +302,21 @@
             cursor: pointer;
         }
 
+        .volume-close {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            width: 20px;
+            height: 20px;
+            border: none;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border-radius: 50%;
+            font-size: 12px;
+            cursor: pointer;
+            line-height: 1;
+        }
+
         .volume-toggle {
             position: fixed;
             bottom: 20px;
@@ -342,13 +357,14 @@
 
     <!-- Volume controls panel -->
     <div class="volume-controls" id="volumeControls">
+        <button class="volume-close" id="volumeClose">✕</button>
         <div class="volume-control">
             <label>Poem</label>
             <input type="range" id="poemVolume" min="0" max="100" value="100">
         </div>
         <div class="volume-control">
             <label>Music</label>
-            <input type="range" id="musicVolume" min="0" max="100" value="5">
+            <input type="range" id="musicVolume" min="0" max="100" value="10">
         </div>
     </div>
 
@@ -767,7 +783,7 @@
             // Start background music at 0:20
             const music = document.getElementById('backgroundMusic');
             if (music) {
-                musicGain = setupWebAudio(music, 0.05);
+                musicGain = setupWebAudio(music, 0.10);
                 music.currentTime = 20; // Start at 20 seconds
                 music.play().catch(() => {});
             }
@@ -798,9 +814,16 @@
             const poemSlider = document.getElementById('poemVolume');
             const musicSlider = document.getElementById('musicVolume');
 
+            const closeBtn = document.getElementById('volumeClose');
+
             // Toggle panel visibility
             toggle.addEventListener('click', () => {
-                controls.classList.toggle('visible');
+                controls.classList.add('visible');
+            });
+
+            // Close panel
+            closeBtn.addEventListener('click', () => {
+                controls.classList.remove('visible');
             });
 
             // Poem volume - use Web Audio gain node
