@@ -743,6 +743,23 @@
             });
         }
 
+        // Web Audio API for iOS volume control
+        let audioContext = null;
+        let musicGain = null;
+        let poemGain = null;
+
+        function setupWebAudio(audioElement, initialVolume) {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            const source = audioContext.createMediaElementSource(audioElement);
+            const gainNode = audioContext.createGain();
+            gainNode.gain.value = initialVolume;
+            source.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            return gainNode;
+        }
+
         // Start slideshow
         function startSlideshow() {
             document.getElementById('playOverlay').classList.add('hidden');
@@ -750,7 +767,7 @@
             // Start background music at 0:20
             const music = document.getElementById('backgroundMusic');
             if (music) {
-                music.volume = 0.05; // Very quiet for iOS
+                musicGain = setupWebAudio(music, 0.05);
                 music.currentTime = 20; // Start at 20 seconds
                 music.play().catch(() => {});
             }
@@ -759,7 +776,7 @@
             const narration = document.getElementById('narration');
             if (narration && narration.duration) {
                 adjustTimingForAudio(narration.duration);
-                narration.volume = 1.0;
+                poemGain = setupWebAudio(narration, 1.0);
                 narration.play().catch(() => {});
             }
 
@@ -780,25 +797,23 @@
             const controls = document.getElementById('volumeControls');
             const poemSlider = document.getElementById('poemVolume');
             const musicSlider = document.getElementById('musicVolume');
-            const narration = document.getElementById('narration');
-            const music = document.getElementById('backgroundMusic');
 
             // Toggle panel visibility
             toggle.addEventListener('click', () => {
                 controls.classList.toggle('visible');
             });
 
-            // Poem volume
+            // Poem volume - use Web Audio gain node
             poemSlider.addEventListener('input', (e) => {
-                if (narration) {
-                    narration.volume = e.target.value / 100;
+                if (poemGain) {
+                    poemGain.gain.value = e.target.value / 100;
                 }
             });
 
-            // Music volume
+            // Music volume - use Web Audio gain node
             musicSlider.addEventListener('input', (e) => {
-                if (music) {
-                    music.volume = e.target.value / 100;
+                if (musicGain) {
+                    musicGain.gain.value = e.target.value / 100;
                 }
             });
         }
