@@ -251,6 +251,76 @@
             color: white;
             font-size: 1rem;
         }
+
+        /* Volume controls */
+        .volume-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 15px;
+            border-radius: 12px;
+            z-index: 150;
+            display: none;
+            flex-direction: column;
+            gap: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .volume-controls.visible {
+            display: flex;
+        }
+
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .volume-control label {
+            color: white;
+            font-size: 0.75rem;
+            width: 50px;
+            text-align: right;
+        }
+
+        .volume-control input[type="range"] {
+            -webkit-appearance: none;
+            width: 100px;
+            height: 4px;
+            border-radius: 2px;
+            background: rgba(255,255,255,0.3);
+            outline: none;
+        }
+
+        .volume-control input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+        }
+
+        .volume-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.5);
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            z-index: 149;
+            display: none;
+        }
+
+        .volume-toggle.visible {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -265,6 +335,21 @@
 
     <div class="progress-container">
         <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <!-- Volume toggle button -->
+    <button class="volume-toggle" id="volumeToggle">🔊</button>
+
+    <!-- Volume controls panel -->
+    <div class="volume-controls" id="volumeControls">
+        <div class="volume-control">
+            <label>Poem</label>
+            <input type="range" id="poemVolume" min="0" max="100" value="100">
+        </div>
+        <div class="volume-control">
+            <label>Music</label>
+            <input type="range" id="musicVolume" min="0" max="100" value="5">
+        </div>
     </div>
 
     <!-- Background music -->
@@ -665,7 +750,7 @@
             // Start background music at 0:20
             const music = document.getElementById('backgroundMusic');
             if (music) {
-                music.volume = 0.15;
+                music.volume = 0.05; // Very quiet for iOS
                 music.currentTime = 20; // Start at 20 seconds
                 music.play().catch(() => {});
             }
@@ -678,11 +763,44 @@
                 narration.play().catch(() => {});
             }
 
+            // Show volume controls
+            document.getElementById('volumeToggle').classList.add('visible');
+            setupVolumeControls();
+
             // Reset first slide animations
             resetAnimations(slides[0].element);
 
             updateProgress();
             slideTimer = setTimeout(nextSlide, slides[0].duration);
+        }
+
+        // Volume controls
+        function setupVolumeControls() {
+            const toggle = document.getElementById('volumeToggle');
+            const controls = document.getElementById('volumeControls');
+            const poemSlider = document.getElementById('poemVolume');
+            const musicSlider = document.getElementById('musicVolume');
+            const narration = document.getElementById('narration');
+            const music = document.getElementById('backgroundMusic');
+
+            // Toggle panel visibility
+            toggle.addEventListener('click', () => {
+                controls.classList.toggle('visible');
+            });
+
+            // Poem volume
+            poemSlider.addEventListener('input', (e) => {
+                if (narration) {
+                    narration.volume = e.target.value / 100;
+                }
+            });
+
+            // Music volume
+            musicSlider.addEventListener('input', (e) => {
+                if (music) {
+                    music.volume = e.target.value / 100;
+                }
+            });
         }
 
         // Wait for audio to load
