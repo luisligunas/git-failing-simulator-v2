@@ -983,12 +983,41 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
                                 <div class="grid grid-cols-2 gap-2">
                                     <label class="cursor-pointer">
+                                        <input type="radio" name="manualStatus" value="submitted" class="sr-only peer" onchange="toggleRewardInputs()">
+                                        <div class="p-3 text-center text-sm border-2 border-gray-200 rounded-lg peer-checked:border-blue-500 peer-checked:bg-blue-50 peer-checked:text-blue-700 hover:bg-gray-50">
+                                            <svg class="w-5 h-5 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                                            </svg>
+                                            Submitted
+                                        </div>
+                                    </label>
+                                    <label class="cursor-pointer">
                                         <input type="radio" name="manualStatus" value="approved" class="sr-only peer" onchange="toggleRewardInputs()">
                                         <div class="p-3 text-center text-sm border-2 border-gray-200 rounded-lg peer-checked:border-green-500 peer-checked:bg-green-50 peer-checked:text-green-700 hover:bg-gray-50">
                                             <svg class="w-5 h-5 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                                             </svg>
                                             Approved
+                                        </div>
+                                    </label>
+                                    <label class="cursor-pointer relative group">
+                                        <input type="radio" name="manualStatus" value="externally_approved" class="sr-only peer" onchange="toggleRewardInputs()">
+                                        <div class="p-3 text-center text-sm border-2 border-gray-200 rounded-lg peer-checked:border-teal-500 peer-checked:bg-teal-50 peer-checked:text-teal-700 hover:bg-gray-50">
+                                            <svg class="w-5 h-5 mx-auto mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/>
+                                            </svg>
+                                            <span class="flex items-center justify-center">
+                                                Ext. Approved
+                                                <svg class="w-3.5 h-3.5 ml-0.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                                </svg>
+                                            </span>
+                                        </div>
+                                        <!-- Tooltip -->
+                                        <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none w-56 z-10">
+                                            Rewards the user appropriately, but internally the submission won't be tagged as approved — its data won't be included in report generation or the final dataset.
+                                            <div class="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
                                         </div>
                                     </label>
                                     <label class="cursor-pointer">
@@ -3065,6 +3094,8 @@
             switch(status) {
                 case 'approved':
                     return 'bg-green-100 text-green-700';
+                case 'externally_approved':
+                    return 'bg-teal-100 text-teal-700';
                 case 'rejected':
                     return 'bg-red-100 text-red-700';
                 case 'unqualified':
@@ -3079,6 +3110,7 @@
 
         function getStatusLabel(status) {
             if (!status) return 'SUBMITTED';
+            if (status === 'externally_approved') return 'EXT. APPROVED';
             return status.toUpperCase();
         }
 
@@ -3086,6 +3118,8 @@
             switch(decision) {
                 case 'approved':
                     return 'bg-green-100 text-green-700';
+                case 'externally_approved':
+                    return 'bg-teal-100 text-teal-700';
                 case 'rejected':
                     return 'bg-red-100 text-red-700';
                 case 'unqualified':
@@ -3173,7 +3207,7 @@
             const status = document.querySelector('input[name="manualStatus"]:checked')?.value;
             const rewardSection = document.getElementById('customRewardSection');
 
-            if (status === 'approved' || status === 'unqualified') {
+            if (status === 'approved' || status === 'unqualified' || status === 'externally_approved') {
                 rewardSection.classList.remove('hidden');
             } else {
                 rewardSection.classList.add('hidden');
@@ -3239,7 +3273,12 @@
 
             // Update user-facing status based on mode
             if (statusUpdateMode === 'both') {
-                sub.userFacingStatus = decision;
+                // Externally Approved: user-facing shows "approved" (for reward), internal stays "externally_approved"
+                if (decision === 'externally_approved') {
+                    sub.userFacingStatus = 'approved';
+                } else {
+                    sub.userFacingStatus = decision;
+                }
             }
             // If 'internal_only', user-facing status stays unchanged
 
