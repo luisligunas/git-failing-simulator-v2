@@ -1,0 +1,1666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hustle PH Launcher — Prototype</title>
+<!--
+  HUSTLE PH LAUNCHER — clickable vision prototype
+  Client-facing market-research platform · launcher.hustle-ph.com
+  Self-contained: open this file in a browser. SPA routing via hash.
+  NOTE: ₱149,000 dipstick headline is a PLACEHOLDER marketing price — confirm with Luis.
+  Pricing calculator logic reverse-engineered from the live Hustle PH pricing sheet.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,400..600&family=Hanken+Grotesk:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ============================== TOKENS ============================== */
+:root{
+  --paper:#FAF8F6; --paper-2:#F4F0EA; --paper-3:#ECE4D9; --well:#F7F2EB;
+  --ink:#1C1A18; --ink-2:#6E665F; --ink-3:#A9A199; --line:#E4DCD2; --line-2:#D9CFC2;
+  --green:#147F67; --green-2:#1AA888; --green-3:#27BF9D; --green-wash:#D4F2EB; --green-deep:#0E5C4A;
+  --plum:#331840; --plum-2:#472657; --plum-ink:#230731; --plum-soft:#5B3A6B;
+  --gold:#FFC526; --gold-deep:#BC9C22; --gold-wash:#FFF3CC; --gold-text:#7A5E0A; --gold-line:#E8C765;
+  --danger:#E11D48; --warning:#F2710B; --success:#119C5B;
+  --pink:#FBD7F1; --purple:#D6D4FF; --orange:#FFD9CD; --sky:#CFE8FF;
+  --font-d:'Fraunces',Georgia,'Times New Roman',serif;
+  --font-u:'Hanken Grotesk',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --r-xs:8px; --r-sm:12px; --r-md:16px; --r-lg:22px; --r-xl:30px; --r-pill:999px;
+  --sh-1:0 1px 2px rgba(40,30,20,.05), 0 2px 8px rgba(40,30,20,.04);
+  --sh-2:0 10px 30px -12px rgba(51,24,64,.18), 0 2px 8px rgba(40,30,20,.05);
+  --sh-3:0 30px 60px -20px rgba(51,24,64,.28);
+  --sh-plum:0 20px 50px -18px rgba(35,7,49,.55);
+  --ease:cubic-bezier(.2,.7,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font-u); background:var(--paper); color:var(--ink);
+  font-size:16px; line-height:1.55; -webkit-font-smoothing:antialiased;
+  font-feature-settings:"ss01","cv05"; overflow-x:hidden;
+}
+/* measurement-tick / dotted texture motif */
+.tickbg{
+  background-image:radial-gradient(var(--line-2) .9px, transparent .9px);
+  background-size:22px 22px;
+}
+::selection{background:var(--gold-wash); color:var(--plum-ink)}
+a{color:inherit; text-decoration:none}
+img{max-width:100%; display:block}
+h1,h2,h3,h4{font-family:var(--font-d); font-weight:540; line-height:1.05; letter-spacing:-.01em; color:var(--ink)}
+.serif{font-family:var(--font-d)}
+.mono-num{font-family:var(--font-d); font-variant-numeric:tabular-nums; font-feature-settings:"tnum"}
+.eyebrow{font-family:var(--font-u); font-weight:700; font-size:.72rem; letter-spacing:.18em; text-transform:uppercase; color:var(--green); display:inline-flex; align-items:center; gap:.5rem}
+.eyebrow.plum{color:var(--gold)}
+.muted{color:var(--ink-2)}
+.tiny{font-size:.8rem}
+
+/* ============================== BUTTONS ============================== */
+.btn{display:inline-flex; align-items:center; justify-content:center; gap:.5rem; font-family:var(--font-u);
+  font-weight:700; font-size:.95rem; line-height:1; border-radius:var(--r-pill); padding:.85rem 1.4rem;
+  border:1.5px solid transparent; cursor:pointer; transition:all .2s var(--ease); white-space:nowrap; background:none}
+.btn svg{width:1.05em; height:1.05em}
+.btn-primary{background:var(--green); color:#fff; box-shadow:0 8px 20px -10px rgba(20,127,103,.7)}
+.btn-primary:hover{background:var(--green-deep); transform:translateY(-1px); box-shadow:0 12px 26px -10px rgba(20,127,103,.8)}
+.btn-gold{background:var(--gold); color:var(--plum-ink); box-shadow:0 8px 20px -10px rgba(255,197,38,.8)}
+.btn-gold:hover{background:#ffcf45; transform:translateY(-1px)}
+.btn-ghost{background:transparent; color:var(--ink); border-color:var(--line-2)}
+.btn-ghost:hover{border-color:var(--ink); background:#fff}
+.btn-plum{background:var(--plum); color:#fff}
+.btn-plum:hover{background:var(--plum-2)}
+.btn-white{background:#fff; color:var(--green); border-color:var(--line)}
+.btn-white:hover{border-color:var(--green); background:var(--green-wash)}
+.btn-sm{padding:.55rem .9rem; font-size:.84rem}
+.btn-lg{padding:1.05rem 1.9rem; font-size:1.05rem}
+.btn-block{display:flex; width:100%}
+.btn-link{color:var(--green); font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:.35rem}
+.btn-link:hover{color:var(--green-deep)}
+.btn:disabled,.btn.is-disabled{opacity:.4; cursor:not-allowed; transform:none!important}
+
+/* ============================== PILLS / BADGES ============================== */
+.pill{display:inline-flex; align-items:center; gap:.4rem; font-weight:700; font-size:.74rem; letter-spacing:.02em;
+  padding:.34rem .7rem; border-radius:var(--r-pill); border:1.5px solid currentColor; line-height:1}
+.pill .dot{width:7px; height:7px; border-radius:50%; background:currentColor}
+.pill.draft{color:var(--ink-2)}
+.pill.progress{color:var(--warning)}
+.pill.completed{color:var(--green)}
+.pill.scheduled{color:#6b53c4}
+.pill.payment{color:var(--gold-text)}
+.pill.closed{color:var(--danger)}
+.pill.solid{border:none; color:#fff}
+.pill.solid.green{background:var(--green)} .pill.solid.gold{background:var(--gold); color:var(--plum-ink)}
+.tag{display:inline-flex; align-items:center; gap:.35rem; font-size:.74rem; font-weight:700; padding:.28rem .6rem; border-radius:var(--r-pill); background:var(--paper-2); color:var(--ink-2)}
+.tag.green{background:var(--green-wash); color:var(--green-deep)}
+.tag.gold{background:var(--gold-wash); color:var(--gold-text)}
+.tag.plum{background:#efe7f4; color:var(--plum-2)}
+.surcharge{background:var(--gold-wash); color:var(--gold-text); border:1px dashed var(--gold-deep); font-weight:700; font-size:.72rem; padding:.2rem .55rem; border-radius:var(--r-pill)}
+
+/* ============================== FORM ============================== */
+.field{margin-bottom:1rem}
+.field > label, .lab{display:block; font-weight:600; font-size:.86rem; margin-bottom:.45rem; color:var(--ink)}
+.lab .hint{font-weight:400; color:var(--ink-2); font-size:.8rem}
+.inp,.sel,textarea.inp{width:100%; font-family:var(--font-u); font-size:1rem; color:var(--ink); background:#fff;
+  border:1.5px solid var(--line); border-radius:var(--r-xs); padding:.8rem .9rem; transition:all .18s var(--ease)}
+.inp:focus,.sel:focus,textarea.inp:focus{outline:none; border-color:var(--green-3); box-shadow:0 0 0 4px var(--green-wash)}
+.sel{appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23147F67' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right .8rem center; background-size:1.1rem; padding-right:2.4rem; cursor:pointer}
+.inp-icon{position:relative} .inp-icon svg{position:absolute; left:.9rem; top:50%; transform:translateY(-50%); width:1.1rem; height:1.1rem; color:var(--ink-3)} .inp-icon .inp{padding-left:2.6rem}
+.grid-2{display:grid; grid-template-columns:1fr 1fr; gap:1rem}
+.grid-3{display:grid; grid-template-columns:repeat(3,1fr); gap:1rem}
+input[type=range]{-webkit-appearance:none; width:100%; height:6px; border-radius:99px; background:var(--paper-3); outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none; width:22px; height:22px; border-radius:50%; background:var(--green); cursor:pointer; border:3px solid #fff; box-shadow:var(--sh-1)}
+.check{display:flex; align-items:flex-start; gap:.6rem; cursor:pointer; user-select:none}
+.check input{display:none}
+.check .box{flex:none; width:22px; height:22px; border-radius:6px; border:1.5px solid var(--line-2); background:#fff; display:grid; place-items:center; transition:.15s; margin-top:1px}
+.check input:checked + .box{background:var(--green); border-color:var(--green)}
+.check input:checked + .box svg{opacity:1}
+.check .box svg{width:13px; height:13px; color:#fff; opacity:0}
+
+/* ============================== PUBLIC NAV ============================== */
+.topnav{position:sticky; top:0; z-index:40; display:flex; align-items:center; gap:2rem; padding:.9rem clamp(1rem,4vw,3.2rem);
+  background:rgba(250,248,246,.82); backdrop-filter:blur(14px); border-bottom:1px solid var(--line)}
+.brand{display:flex; align-items:center; gap:.6rem; font-weight:800; font-size:1.18rem; letter-spacing:-.02em}
+.brand .mark{width:34px; height:34px; border-radius:10px; background:var(--green); display:grid; place-items:center; color:#fff; box-shadow:0 6px 14px -6px rgba(20,127,103,.8); position:relative}
+.brand .mark::after{content:""; position:absolute; inset:0; border-radius:10px; border:1.5px solid rgba(255,255,255,.35)}
+.brand .mark svg{width:19px; height:19px}
+.brand .sub{font-family:var(--font-d); font-weight:500; font-style:italic; color:var(--green); font-size:1.1rem; margin-left:-.15rem}
+.topnav .links{display:flex; gap:.3rem; margin-left:.5rem}
+.topnav .links a{padding:.5rem .8rem; border-radius:var(--r-xs); font-weight:600; font-size:.92rem; color:var(--ink-2); transition:.15s}
+.topnav .links a:hover{color:var(--ink); background:var(--paper-2)}
+.topnav .spacer{flex:1}
+.nav-actions{display:flex; align-items:center; gap:.7rem}
+
+/* ============================== LAYOUT ============================== */
+.section{padding:clamp(3.5rem,7vw,6.5rem) clamp(1rem,4vw,3.2rem)}
+.wrap{max-width:1180px; margin:0 auto}
+.center{text-align:center}
+.lede{font-size:1.18rem; color:var(--ink-2); line-height:1.6; max-width:42ch}
+.center .lede{margin-left:auto; margin-right:auto}
+
+/* HERO */
+.hero{position:relative; padding:clamp(2.5rem,5vw,4.5rem) clamp(1rem,4vw,3.2rem) clamp(3rem,6vw,5rem); overflow:hidden}
+.hero::before{content:""; position:absolute; inset:0; background:
+  radial-gradient(120% 90% at 88% -10%, rgba(212,242,235,.6), transparent 45%),
+  radial-gradient(80% 70% at -5% 110%, rgba(255,243,204,.5), transparent 50%); z-index:-1}
+.hero-grid{display:grid; grid-template-columns:1.05fr .95fr; gap:clamp(2rem,4vw,4rem); align-items:center; max-width:1180px; margin:0 auto}
+.hero h1{font-size:clamp(2.6rem,5.4vw,4.4rem); line-height:.98; letter-spacing:-.025em}
+.hero h1 em{font-style:italic; color:var(--green); font-weight:500}
+.hero .lede{font-size:1.22rem; margin-top:1.4rem; max-width:46ch}
+.hero-cta{display:flex; gap:.8rem; margin-top:2rem; flex-wrap:wrap}
+.trust{display:flex; align-items:center; gap:1.4rem; margin-top:2.6rem; flex-wrap:wrap}
+.trust .label{font-size:.78rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3)}
+.trust .logos{display:flex; gap:1.3rem; font-family:var(--font-d); font-weight:600; font-size:1.05rem; color:var(--ink-3); opacity:.8}
+
+/* hero visual: live study card */
+.studyviz{position:relative}
+.viz-card{background:#fff; border:1px solid var(--line); border-radius:var(--r-lg); box-shadow:var(--sh-3); padding:1.4rem; position:relative; z-index:2}
+.viz-card .vc-head{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:1.1rem}
+.viz-card .vc-title{font-family:var(--font-d); font-size:1.15rem}
+.ring{--p:68; width:128px; height:128px; border-radius:50%; display:grid; place-items:center; position:relative;
+  background:conic-gradient(var(--green) calc(var(--p)*1%), var(--paper-3) 0)}
+.ring::before{content:""; position:absolute; inset:11px; border-radius:50%; background:#fff}
+.ring .rv{position:relative; text-align:center}
+.ring .rv b{font-family:var(--font-d); font-size:1.9rem; display:block; line-height:1}
+.ring .rv span{font-size:.7rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3)}
+.viz-row{display:flex; gap:1rem; align-items:center; margin-top:1rem}
+.viz-stats{flex:1; display:flex; flex-direction:column; gap:.5rem}
+.viz-stat{display:flex; justify-content:space-between; font-size:.85rem}
+.viz-stat b{font-family:var(--font-d); font-weight:600}
+.bar{height:7px; border-radius:99px; background:var(--paper-3); overflow:hidden; margin-top:.3rem}
+.bar > i{display:block; height:100%; border-radius:99px; background:var(--green-3); transition:width 1s var(--ease)}
+.viz-float{position:absolute; background:#fff; border:1px solid var(--line); border-radius:var(--r-md); box-shadow:var(--sh-2); padding:.7rem .9rem; font-size:.8rem; font-weight:700; display:flex; align-items:center; gap:.5rem; z-index:3}
+.viz-float .ic{width:26px; height:26px; border-radius:8px; display:grid; place-items:center}
+.viz-float.a{top:-18px; left:-26px} .viz-float.b{bottom:24px; right:-30px}
+
+/* section heads */
+.shead{max-width:640px; margin-bottom:2.6rem}
+.shead.center{margin-left:auto; margin-right:auto}
+.shead h2{font-size:clamp(1.9rem,3.6vw,2.9rem); margin-top:.8rem}
+.shead p{color:var(--ink-2); font-size:1.08rem; margin-top:.7rem}
+
+/* feature cards */
+.cards{display:grid; grid-template-columns:repeat(3,1fr); gap:1.1rem}
+.fcard{background:#fff; border:1px solid var(--line); border-radius:var(--r-md); padding:1.5rem; transition:.25s var(--ease)}
+.fcard:hover{transform:translateY(-3px); box-shadow:var(--sh-2); border-color:var(--line-2)}
+.fcard .fic{width:46px; height:46px; border-radius:13px; display:grid; place-items:center; margin-bottom:1rem}
+.fcard h3{font-size:1.22rem; margin-bottom:.4rem}
+.fcard p{color:var(--ink-2); font-size:.95rem}
+.ic-green{background:var(--green-wash); color:var(--green)} .ic-gold{background:var(--gold-wash); color:var(--gold-deep)}
+.ic-plum{background:#efe7f4; color:var(--plum-2)} .ic-pink{background:var(--pink); color:#b03a8f}
+.ic-sky{background:var(--sky); color:#2670b8} .ic-orange{background:var(--orange); color:#c0512f}
+
+/* dipstick spotlight band */
+.spotlight{background:var(--plum); color:#fff; border-radius:var(--r-xl); padding:clamp(2rem,4vw,3.4rem); position:relative; overflow:hidden; box-shadow:var(--sh-plum)}
+.spotlight::after{content:""; position:absolute; inset:0; background:radial-gradient(70% 120% at 100% 0%, rgba(255,197,38,.18), transparent 55%); pointer-events:none}
+.spotlight .sl-grid{display:grid; grid-template-columns:1.2fr .8fr; gap:2.5rem; align-items:center; position:relative; z-index:2}
+.spotlight h2{color:#fff; font-size:clamp(1.8rem,3.4vw,2.7rem)}
+.spotlight .specs{display:flex; gap:1.5rem; margin:1.4rem 0; flex-wrap:wrap}
+.spotlight .spec b{font-family:var(--font-d); font-size:2.1rem; color:#fff; display:block; line-height:1}
+.spotlight .spec span{font-size:.82rem; color:rgba(255,255,255,.7); font-weight:600}
+.price-card{background:#fff; color:var(--ink); border-radius:var(--r-lg); padding:1.8rem; text-align:center; box-shadow:var(--sh-3)}
+.price-card .from{font-size:.8rem; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3)}
+.price-card .amt{font-family:var(--font-d); font-size:3.2rem; line-height:1; margin:.3rem 0; letter-spacing:-.02em}
+.price-card .amt small{font-size:1.2rem; color:var(--ink-2)}
+.price-card .note{font-size:.82rem; color:var(--ink-2); margin-bottom:1.2rem}
+
+/* steps */
+.steps{display:grid; grid-template-columns:repeat(4,1fr); gap:1.1rem; counter-reset:s}
+.stepc{position:relative; padding-top:1rem}
+.stepc .n{font-family:var(--font-d); font-size:2.6rem; color:var(--green-3); line-height:1; opacity:.6}
+.stepc h3{font-size:1.18rem; margin:.5rem 0 .3rem}
+.stepc p{color:var(--ink-2); font-size:.92rem}
+
+/* CTA band */
+.ctaband{background:var(--green); color:#fff; border-radius:var(--r-xl); padding:clamp(2.2rem,5vw,4rem); text-align:center; position:relative; overflow:hidden}
+.ctaband::before{content:""; position:absolute; inset:0; opacity:.5; background-image:radial-gradient(rgba(255,255,255,.16) 1px, transparent 1px); background-size:24px 24px}
+.ctaband h2{color:#fff; font-size:clamp(1.9rem,4vw,3rem); position:relative}
+.ctaband p{color:rgba(255,255,255,.85); position:relative; max-width:50ch; margin:.8rem auto 1.8rem; font-size:1.1rem}
+
+/* footer */
+.foot{background:var(--plum-ink); color:rgba(255,255,255,.75); padding:clamp(2.5rem,5vw,4rem) clamp(1rem,4vw,3.2rem) 2rem}
+.foot .fg{max-width:1180px; margin:0 auto; display:grid; grid-template-columns:1.4fr repeat(3,1fr); gap:2rem}
+.foot h4{color:#fff; font-family:var(--font-u); font-weight:700; font-size:.8rem; letter-spacing:.12em; text-transform:uppercase; margin-bottom:1rem}
+.foot a{display:block; padding:.3rem 0; color:rgba(255,255,255,.7); font-size:.92rem}
+.foot a:hover{color:var(--gold)}
+.foot .brand{color:#fff; margin-bottom:.8rem}
+.foot .brand .mark{background:var(--green)}
+.foot .bottom{max-width:1180px; margin:2.5rem auto 0; padding-top:1.5rem; border-top:1px solid rgba(255,255,255,.12); display:flex; justify-content:space-between; font-size:.82rem; flex-wrap:wrap; gap:1rem}
+
+/* ============================== PRICING ============================== */
+.tier-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:1.2rem; align-items:stretch}
+.tier{background:#fff; border:1px solid var(--line); border-radius:var(--r-lg); padding:1.8rem; display:flex; flex-direction:column; position:relative; transition:.25s}
+.tier.feat{border:2px solid var(--green); box-shadow:var(--sh-2); transform:scale(1.02)}
+.tier .ribbon{position:absolute; top:-12px; left:50%; transform:translateX(-50%); background:var(--gold); color:var(--plum-ink); font-weight:800; font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; padding:.35rem .9rem; border-radius:var(--r-pill)}
+.tier h3{font-size:1.4rem}
+.tier .tprice{font-family:var(--font-d); font-size:2.5rem; margin:.6rem 0 .2rem; line-height:1}
+.tier .tprice small{font-size:1rem; color:var(--ink-2); font-family:var(--font-u); font-weight:600}
+.tier .tsub{color:var(--ink-2); font-size:.9rem; min-height:2.4em}
+.tier ul{list-style:none; margin:1.3rem 0; display:flex; flex-direction:column; gap:.7rem}
+.tier li{display:flex; gap:.6rem; font-size:.92rem; align-items:flex-start}
+.tier li svg{flex:none; width:18px; height:18px; color:var(--green); margin-top:2px}
+.tier .btn{margin-top:auto}
+
+/* calculator */
+.calc-toggle{display:flex; justify-content:center; margin:2.4rem 0 1.6rem}
+.calc{display:grid; grid-template-columns:1.35fr .8fr; gap:1.4rem; align-items:start}
+.calc-panel{background:#fff; border:1px solid var(--line); border-radius:var(--r-lg); padding:1.6rem}
+.calc-panel h3{font-size:1.25rem; margin-bottom:.3rem}
+.calc-grid{display:grid; grid-template-columns:1fr 1fr; gap:1rem 1.2rem; margin-top:1.2rem}
+.calc-grid .full{grid-column:1/-1}
+.calc .summary{position:sticky; top:84px; background:var(--plum); color:#fff; border-radius:var(--r-lg); padding:1.5rem; box-shadow:var(--sh-plum)}
+.calc .summary h4{color:var(--gold); font-family:var(--font-u); font-weight:700; font-size:.78rem; letter-spacing:.12em; text-transform:uppercase; margin-bottom:1rem}
+.qline{display:flex; justify-content:space-between; padding:.5rem 0; font-size:.9rem; border-bottom:1px dashed rgba(255,255,255,.13); color:rgba(255,255,255,.85)}
+.qline b{font-family:var(--font-d); font-weight:500; color:#fff; font-variant-numeric:tabular-nums}
+.qline.muted2{color:rgba(255,255,255,.5)} .qline.muted2 b{color:rgba(255,255,255,.5)}
+.qline.sub{border-bottom:none; margin-top:.5rem; padding-top:.8rem; border-top:1.5px solid rgba(255,255,255,.25); font-weight:700}
+.qline.total{border:none; margin-top:.4rem; font-size:1.05rem; font-weight:800}
+.qline.total b{font-size:1.9rem; color:var(--gold)}
+.qline.surch b{color:var(--gold)}
+.qline.credit b{color:var(--green-3)}
+.calc-foot{margin-top:1.2rem; padding-top:1rem; border-top:1px solid rgba(255,255,255,.15)}
+
+/* tick rule divider */
+.tickrule{height:14px; background:repeating-linear-gradient(90deg, var(--line-2) 0 1px, transparent 1px 14px); opacity:.7; margin:0}
+
+/* ============================== APP SHELL ============================== */
+.app{display:none; min-height:100vh}
+body.in-app .topnav, body.in-app .public{display:none}
+body.in-app .app{display:grid; grid-template-columns:256px 1fr}
+.sidebar{background:linear-gradient(180deg,var(--plum-2),var(--plum-ink)); color:#fff; padding:1.3rem 1rem; position:sticky; top:0; height:100vh; display:flex; flex-direction:column; gap:.3rem}
+.sidebar .brand{color:#fff; padding:.3rem .5rem 1rem}
+.sidebar .brand .sub{color:var(--gold)}
+.side-cta{margin:.2rem 0 1rem}
+.snav{display:flex; flex-direction:column; gap:.15rem; flex:1}
+.snav a{display:flex; align-items:center; gap:.75rem; padding:.7rem .8rem; border-radius:var(--r-xs); color:rgba(255,255,255,.72); font-weight:600; font-size:.93rem; transition:.15s; cursor:pointer}
+.snav a svg{width:1.15rem; height:1.15rem; flex:none}
+.snav a:hover{background:rgba(255,255,255,.07); color:#fff}
+.snav a.active{background:rgba(255,255,255,.12); color:#fff}
+.snav a.active svg{color:var(--gold)}
+.snav .sgroup{font-size:.68rem; letter-spacing:.14em; text-transform:uppercase; color:rgba(255,255,255,.4); padding:1rem .8rem .4rem; font-weight:700}
+.userchip{display:flex; align-items:center; gap:.6rem; padding:.6rem; border-radius:var(--r-sm); background:rgba(255,255,255,.06); cursor:pointer}
+.userchip .av{width:34px; height:34px; border-radius:50%; background:var(--gold); color:var(--plum-ink); display:grid; place-items:center; font-weight:800; font-size:.85rem; flex:none}
+.userchip .ud{flex:1; min-width:0} .userchip .ud b{font-size:.86rem; display:block; color:#fff} .userchip .ud span{font-size:.74rem; color:rgba(255,255,255,.55)}
+
+.main{min-height:100vh; display:flex; flex-direction:column}
+.topbar{display:flex; align-items:center; gap:1rem; padding:.85rem clamp(1.2rem,3vw,2.2rem); background:rgba(250,248,246,.85); backdrop-filter:blur(10px); border-bottom:1px solid var(--line); position:sticky; top:0; z-index:30}
+.topbar h1{font-family:var(--font-d); font-size:1.35rem}
+.topbar .crumb{font-size:.8rem; color:var(--ink-3); font-weight:600}
+.topbar .spacer{flex:1}
+.icbtn{width:40px; height:40px; border-radius:50%; border:1px solid var(--line); background:#fff; display:grid; place-items:center; cursor:pointer; color:var(--ink-2); position:relative; transition:.15s}
+.icbtn:hover{border-color:var(--line-2); color:var(--ink)}
+.icbtn .ndot{position:absolute; top:8px; right:9px; width:8px; height:8px; border-radius:50%; background:var(--danger); border:2px solid #fff}
+.credit{display:flex; align-items:center; gap:.5rem; background:var(--green-wash); color:var(--green-deep); padding:.5rem .85rem; border-radius:var(--r-pill); font-weight:700; font-size:.86rem}
+.content{padding:clamp(1.4rem,3vw,2.4rem); flex:1; max-width:1240px; width:100%; margin:0 auto}
+
+/* stat tiles */
+.tiles{display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-bottom:1.6rem}
+.tile{background:#fff; border:1px solid var(--line); border-radius:var(--r-md); padding:1.2rem 1.3rem}
+.tile .tl-ic{width:38px; height:38px; border-radius:11px; display:grid; place-items:center; margin-bottom:.8rem}
+.tile .tl-v{font-family:var(--font-d); font-size:2.1rem; line-height:1}
+.tile .tl-l{color:var(--ink-2); font-size:.86rem; font-weight:600; margin-top:.2rem}
+.tile .tl-d{font-size:.78rem; font-weight:700; margin-top:.4rem}
+.tl-d.up{color:var(--success)} .tl-d.down{color:var(--danger)}
+
+/* generic card / panel */
+.panel{background:#fff; border:1px solid var(--line); border-radius:var(--r-md); padding:1.4rem}
+.panel.pad0{padding:0; overflow:hidden}
+.panel-head{display:flex; align-items:center; gap:1rem; padding:1.1rem 1.3rem; border-bottom:1px solid var(--line)}
+.panel-head h3{font-size:1.15rem} .panel-head .spacer{flex:1}
+.sectitle{display:flex; align-items:center; gap:1rem; margin:1.8rem 0 1rem}
+.sectitle h2{font-size:1.5rem} .sectitle .spacer{flex:1}
+
+/* campaign rows */
+.crow{display:grid; grid-template-columns:1.6fr 1fr 1.3fr auto; gap:1rem; align-items:center; padding:1.1rem 1.3rem; border-bottom:1px solid var(--line); transition:.15s}
+.crow:last-child{border-bottom:none}
+.crow:hover{background:var(--well)}
+.crow .cmeta b{font-family:var(--font-d); font-size:1.08rem; display:block}
+.crow .cmeta span{font-size:.83rem; color:var(--ink-2)}
+.crow .cprog{display:flex; flex-direction:column; gap:.35rem}
+.crow .cprog .pt{display:flex; justify-content:space-between; font-size:.8rem; font-weight:600}
+.crow .cact{display:flex; gap:.5rem; justify-content:flex-end}
+.filterbar{display:flex; gap:.5rem; padding:1rem 1.3rem; border-bottom:1px solid var(--line); flex-wrap:wrap; align-items:center}
+.segbtn{display:inline-flex; border:1px solid var(--line); border-radius:var(--r-pill); overflow:hidden; background:#fff}
+.segbtn button{border:none; background:none; padding:.5rem .95rem; font-family:var(--font-u); font-weight:700; font-size:.82rem; color:var(--ink-2); cursor:pointer; transition:.15s}
+.segbtn button.on{background:var(--green); color:#fff}
+
+/* big live tracking */
+.live-grid{display:grid; grid-template-columns:340px 1fr; gap:1.4rem; align-items:start}
+.bigring-card{background:#fff; border:1px solid var(--line); border-radius:var(--r-lg); padding:1.6rem; text-align:center}
+.bigring{--p:0; width:210px; height:210px; border-radius:50%; margin:0 auto 1rem; display:grid; place-items:center; position:relative;
+  background:conic-gradient(var(--green) calc(var(--p)*1%), var(--paper-3) 0); transition:--p 1.4s var(--ease)}
+@property --p{syntax:'<number>'; inherits:false; initial-value:0}
+.bigring::before{content:""; position:absolute; inset:18px; border-radius:50%; background:#fff; box-shadow:inset 0 2px 10px rgba(0,0,0,.04)}
+.bigring .rv{position:relative}
+.bigring .rv b{font-family:var(--font-d); font-size:3.2rem; line-height:1; display:block}
+.bigring .rv span{font-weight:700; font-size:.78rem; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-3)}
+.livebadge{display:inline-flex; align-items:center; gap:.45rem; font-weight:800; font-size:.74rem; letter-spacing:.1em; text-transform:uppercase; color:var(--warning); background:#fff4ea; padding:.3rem .7rem; border-radius:var(--r-pill); margin-bottom:1rem}
+.livebadge .blink{width:8px; height:8px; border-radius:50%; background:var(--warning); animation:blink 1.3s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+.minigrid{display:grid; grid-template-columns:1fr 1fr; gap:.8rem; margin-top:1.2rem}
+.mini{background:var(--well); border-radius:var(--r-sm); padding:.9rem}
+.mini .mv{font-family:var(--font-d); font-size:1.5rem; line-height:1}
+.mini .ml{font-size:.78rem; color:var(--ink-2); font-weight:600}
+
+/* quota bars */
+.quota{display:flex; flex-direction:column; gap:1rem; margin-top:.4rem}
+.quota .qrow .qh{display:flex; justify-content:space-between; font-size:.86rem; font-weight:600; margin-bottom:.35rem}
+.quota .qrow .qh span{color:var(--ink-2); font-weight:500}
+.qbar{height:10px; border-radius:99px; background:var(--paper-3); overflow:hidden}
+.qbar > i{display:block; height:100%; border-radius:99px; background:linear-gradient(90deg,var(--green-3),var(--green)); transition:width 1.2s var(--ease)}
+
+/* line chart (svg) */
+.chartwrap{padding:.5rem .3rem}
+.legend{display:flex; gap:1.2rem; font-size:.8rem; color:var(--ink-2); font-weight:600; margin-top:.6rem}
+.legend i{display:inline-block; width:11px; height:11px; border-radius:3px; margin-right:.4rem; vertical-align:middle}
+
+/* feed */
+.feed{display:flex; flex-direction:column}
+.feed .fitem{display:flex; align-items:center; gap:.8rem; padding:.7rem 0; border-bottom:1px dashed var(--line)}
+.feed .fitem:last-child{border-bottom:none}
+.feed .fav{width:32px; height:32px; border-radius:50%; background:var(--green-wash); color:var(--green-deep); display:grid; place-items:center; font-weight:800; font-size:.72rem; flex:none}
+.feed .fitem .ft{flex:1; font-size:.86rem} .feed .fitem .ft b{font-weight:700}
+.feed .fitem .fmeta{font-size:.76rem; color:var(--ink-2)}
+
+/* stepper */
+.stepper{display:flex; align-items:center; gap:.4rem; margin-bottom:1.6rem; flex-wrap:wrap}
+.stepper .st{display:flex; align-items:center; gap:.6rem; padding:.5rem .9rem; border-radius:var(--r-pill); font-weight:700; font-size:.86rem; color:var(--ink-3); cursor:pointer}
+.stepper .st .num{width:24px; height:24px; border-radius:50%; border:1.5px solid currentColor; display:grid; place-items:center; font-size:.78rem}
+.stepper .st.done{color:var(--green)} .stepper .st.done .num{background:var(--green); border-color:var(--green); color:#fff}
+.stepper .st.cur{color:var(--ink); background:#fff; border:1px solid var(--line); box-shadow:var(--sh-1)}
+.stepper .st.cur .num{background:var(--green); border-color:var(--green); color:#fff}
+.stepper .sline{flex:1; min-width:14px; height:1.5px; background:var(--line-2)}
+.wizard-foot{display:flex; gap:.8rem; margin-top:1.6rem; align-items:center}
+.wizard-foot .spacer{flex:1}
+.savechip{display:inline-flex; align-items:center; gap:.4rem; font-size:.82rem; font-weight:600; color:var(--ink-2)}
+.savechip svg{width:14px; height:14px; color:var(--success)}
+.wiz-split{display:grid; grid-template-columns:1.4fr .85fr; gap:1.4rem; align-items:start}
+.even-split{display:grid; grid-template-columns:1fr 1fr; gap:1.4rem; align-items:start}
+.guest-only{display:none}
+body.guest .guest-only{display:flex}
+.guestchip{display:none; align-items:center; gap:.6rem; padding:.7rem .8rem; border-radius:var(--r-sm); background:rgba(255,255,255,.08); cursor:pointer; color:#fff; font-weight:700; font-size:.86rem}
+.guestchip svg{width:1.1rem; height:1.1rem; color:var(--gold)}
+body.guest .guestchip{display:flex}
+body.guest .userchip{display:none}
+
+/* survey builder 3-panel */
+.builder{display:grid; grid-template-columns:230px 1fr 250px; gap:1rem; min-height:540px}
+.bpanel{background:#fff; border:1px solid var(--line); border-radius:var(--r-md); overflow:hidden; display:flex; flex-direction:column}
+.bpanel .bp-h{padding:.85rem 1rem; border-bottom:1px solid var(--line); font-weight:700; font-size:.78rem; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-2)}
+.bp-body{padding:.9rem; overflow:auto; flex:1}
+.palette-group{font-size:.7rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3); margin:.8rem 0 .5rem}
+.palette-item{display:flex; align-items:center; gap:.6rem; padding:.6rem .7rem; border:1px solid var(--line); border-radius:var(--r-xs); margin-bottom:.45rem; font-size:.86rem; font-weight:600; cursor:grab; background:var(--well); transition:.15s}
+.palette-item:hover{border-color:var(--green-3); background:#fff; transform:translateX(2px)}
+.palette-item svg{width:1rem; height:1rem; color:var(--green)}
+.canvas{background:var(--well); border-radius:var(--r-md); border:1px dashed var(--line-2)}
+.qcard{background:#fff; border:1px solid var(--line); border-radius:var(--r-sm); padding:1rem 1.1rem; margin-bottom:.8rem; position:relative; cursor:pointer; transition:.15s}
+.qcard:hover{border-color:var(--green-3); box-shadow:var(--sh-1)}
+.qcard.sel{border-color:var(--green); box-shadow:0 0 0 3px var(--green-wash)}
+.qcard .qn{font-size:.74rem; font-weight:800; color:var(--green); letter-spacing:.05em}
+.qcard .qt{font-family:var(--font-d); font-size:1.02rem; margin:.2rem 0 .6rem}
+.qopt{display:flex; align-items:center; gap:.55rem; padding:.4rem 0; font-size:.88rem; color:var(--ink-2)}
+.qopt .qo-mark{width:16px; height:16px; border:1.5px solid var(--line-2); border-radius:50%; flex:none}
+.qopt .qo-mark.sq{border-radius:4px}
+.qcard .grip{position:absolute; right:.7rem; top:.7rem; color:var(--ink-3)}
+.seq-item{display:flex; align-items:center; gap:.5rem; padding:.5rem .6rem; border-radius:var(--r-xs); font-size:.85rem; cursor:pointer; color:var(--ink-2)}
+.seq-item:hover{background:var(--well)} .seq-item.on{background:var(--green-wash); color:var(--green-deep); font-weight:700}
+.seq-item .sq-n{width:20px; height:20px; border-radius:6px; background:var(--paper-3); display:grid; place-items:center; font-size:.72rem; font-weight:800; flex:none}
+.seq-item.on .sq-n{background:var(--green); color:#fff}
+.prop-row{margin-bottom:1rem}
+.toggle{position:relative; width:42px; height:24px; border-radius:99px; background:var(--line-2); cursor:pointer; transition:.2s; flex:none}
+.toggle.on{background:var(--green)}
+.toggle::after{content:""; position:absolute; top:3px; left:3px; width:18px; height:18px; border-radius:50%; background:#fff; transition:.2s; box-shadow:var(--sh-1)}
+.toggle.on::after{left:21px}
+.toggle-row{display:flex; align-items:center; justify-content:space-between; gap:.6rem; font-size:.88rem; font-weight:600; margin-bottom:.7rem}
+
+/* targeting */
+.target-grid{display:grid; grid-template-columns:1fr 1fr; gap:1.2rem}
+.target-card{background:#fff; border:1px solid var(--line); border-radius:var(--r-md); padding:1.2rem}
+.target-card .tc-h{display:flex; align-items:center; justify-content:space-between; margin-bottom:.9rem}
+.target-card .tc-h h4{font-family:var(--font-u); font-weight:700; font-size:1rem}
+.chips{display:flex; flex-wrap:wrap; gap:.5rem}
+.chip{display:inline-flex; align-items:center; gap:.4rem; padding:.5rem .85rem; border:1.5px solid var(--line); border-radius:var(--r-pill); font-size:.86rem; font-weight:600; cursor:pointer; background:#fff; transition:.15s; user-select:none}
+.chip:hover{border-color:var(--green-3)}
+.chip.on{background:var(--green); color:#fff; border-color:var(--green)}
+.chip.custom{border-style:dashed; border-color:var(--gold-deep); color:var(--gold-text)}
+.chip.custom.on{background:var(--gold); color:var(--plum-ink); border-style:solid; border-color:var(--gold)}
+.banner{display:flex; align-items:flex-start; gap:.8rem; padding:1rem 1.2rem; border-radius:var(--r-md); font-size:.9rem; margin-bottom:1.2rem}
+.banner svg{flex:none; width:1.3rem; height:1.3rem; margin-top:1px}
+.banner.gold{background:var(--gold-wash); color:var(--gold-text); border:1px solid var(--gold-line)}
+.banner.green{background:var(--green-wash); color:var(--green-deep)}
+.banner b{font-weight:800}
+
+/* review / order summary */
+.summary-card{background:#fff; border:1px solid var(--line); border-radius:var(--r-md); overflow:hidden}
+.sum-line{display:flex; justify-content:space-between; padding:.8rem 1.3rem; font-size:.92rem; border-bottom:1px solid var(--line)}
+.sum-line b{font-family:var(--font-d); font-weight:500; font-variant-numeric:tabular-nums}
+.sum-line.disc{color:var(--success)} .sum-line.disc b{color:var(--success)}
+.sum-line.tot{background:var(--plum); color:#fff; border:none; font-weight:800; padding:1.1rem 1.3rem}
+.sum-line.tot b{color:var(--gold); font-size:1.7rem}
+
+/* checkout */
+.checkout-grid{display:grid; grid-template-columns:1.3fr .9fr; gap:1.4rem; align-items:start}
+.pay-method{display:flex; align-items:center; gap:.9rem; padding:1rem 1.1rem; border:1.5px solid var(--line); border-radius:var(--r-sm); cursor:pointer; margin-bottom:.7rem; transition:.15s}
+.pay-method:hover{border-color:var(--green-3)}
+.pay-method.on{border-color:var(--green); box-shadow:0 0 0 3px var(--green-wash)}
+.pay-method .pm-ic{width:42px; height:30px; border-radius:6px; display:grid; place-items:center; font-weight:800; font-size:.72rem; color:#fff; flex:none}
+.pay-method .pm-d{flex:1} .pay-method .pm-d b{font-size:.94rem} .pay-method .pm-d span{font-size:.8rem; color:var(--ink-2)}
+.pay-method .radio{width:20px; height:20px; border-radius:50%; border:1.5px solid var(--line-2); flex:none; position:relative}
+.pay-method.on .radio{border-color:var(--green)} .pay-method.on .radio::after{content:""; position:absolute; inset:4px; border-radius:50%; background:var(--green)}
+.voucher{display:flex; gap:.6rem; margin:.4rem 0 1rem}
+.voucher .inp{flex:1}
+
+/* insights */
+.tabs{display:flex; gap:.3rem; border-bottom:1px solid var(--line); margin-bottom:1.4rem}
+.tabs button{border:none; background:none; padding:.8rem 1.1rem; font-family:var(--font-u); font-weight:700; font-size:.95rem; color:var(--ink-2); cursor:pointer; border-bottom:2.5px solid transparent; margin-bottom:-1px}
+.tabs button.on{color:var(--green); border-color:var(--green)}
+.tabpane{display:none} .tabpane.on{display:block}
+.slide-strip{display:grid; grid-template-columns:repeat(3,1fr); gap:1rem}
+.slide{aspect-ratio:16/10; border-radius:var(--r-sm); border:1px solid var(--line); background:#fff; padding:1rem; position:relative; overflow:hidden; box-shadow:var(--sh-1)}
+.slide .sl-k{font-size:.66rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--green)}
+.slide .sl-t{font-family:var(--font-d); font-size:1.05rem; margin:.3rem 0}
+.slide .sl-bars{display:flex; gap:.3rem; align-items:flex-end; height:48px; margin-top:.6rem}
+.slide .sl-bars i{flex:1; background:var(--green-3); border-radius:3px 3px 0 0; opacity:.85}
+.gen-overlay{position:absolute; inset:0; background:rgba(255,255,255,.7); backdrop-filter:blur(2px); display:grid; place-items:center; text-align:center; padding:1rem}
+
+/* chatbot */
+.chat-grid{display:grid; grid-template-columns:1fr 280px; gap:1.4rem; align-items:start}
+.chatbox{background:#fff; border:1px solid var(--line); border-radius:var(--r-md); display:flex; flex-direction:column; height:560px; overflow:hidden}
+.chat-head{display:flex; align-items:center; gap:.7rem; padding:1rem 1.2rem; border-bottom:1px solid var(--line)}
+.chat-head .ai-av{width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg,var(--green),var(--plum-2)); display:grid; place-items:center; color:#fff}
+.chat-log{flex:1; overflow:auto; padding:1.2rem; display:flex; flex-direction:column; gap:1rem; background:var(--well)}
+.msg{max-width:80%; padding:.8rem 1rem; border-radius:var(--r-md); font-size:.92rem; line-height:1.5}
+.msg.user{align-self:flex-end; background:var(--green); color:#fff; border-bottom-right-radius:4px}
+.msg.ai{align-self:flex-start; background:#fff; border:1px solid var(--line); border-bottom-left-radius:4px}
+.msg.ai .mini-chart{display:flex; gap:.25rem; align-items:flex-end; height:54px; margin-top:.7rem}
+.msg.ai .mini-chart i{flex:1; background:var(--green-3); border-radius:3px 3px 0 0}
+.chat-input{display:flex; gap:.6rem; padding:.9rem 1rem; border-top:1px solid var(--line); background:#fff}
+.chat-input .inp{flex:1}
+.suggest{display:flex; flex-direction:column; gap:.6rem}
+.suggest .sg{padding:.8rem 1rem; background:#fff; border:1px solid var(--line); border-radius:var(--r-sm); font-size:.86rem; cursor:pointer; font-weight:600; transition:.15s; color:var(--ink-2)}
+.suggest .sg:hover{border-color:var(--green); color:var(--green-deep); background:var(--green-wash)}
+
+/* xtab table */
+.xtab{width:100%; border-collapse:collapse; font-size:.86rem}
+.xtab th,.xtab td{padding:.7rem .9rem; text-align:right; border-bottom:1px solid var(--line)}
+.xtab th:first-child,.xtab td:first-child{text-align:left; font-weight:700}
+.xtab thead th{background:var(--paper-2); font-weight:800; font-size:.78rem; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-2)}
+.xtab tbody tr:hover{background:var(--well)}
+.xtab .hi{background:var(--green-wash); color:var(--green-deep); font-weight:800; border-radius:4px}
+
+/* auth */
+.auth{display:grid; grid-template-columns:1fr 1fr; min-height:100vh}
+.auth-brand{background:linear-gradient(160deg,var(--plum-2),var(--plum-ink)); color:#fff; padding:clamp(2rem,5vw,4rem); display:flex; flex-direction:column; position:relative; overflow:hidden}
+.auth-brand::before{content:""; position:absolute; inset:0; opacity:.4; background-image:radial-gradient(rgba(255,255,255,.12) 1px, transparent 1px); background-size:26px 26px}
+.auth-brand .ab-body{position:relative; z-index:2; margin:auto 0}
+.auth-brand h2{color:#fff; font-size:clamp(1.8rem,3vw,2.6rem); margin:1.2rem 0}
+.auth-brand .quote{margin-top:2rem; padding-left:1rem; border-left:3px solid var(--gold); color:rgba(255,255,255,.8); font-family:var(--font-d); font-style:italic; font-size:1.15rem}
+.ab-stat{display:flex; gap:2rem; margin-top:2.5rem}
+.ab-stat b{font-family:var(--font-d); font-size:2rem; color:var(--gold); display:block; line-height:1}
+.ab-stat span{font-size:.82rem; color:rgba(255,255,255,.7)}
+.auth-form{display:flex; align-items:center; justify-content:center; padding:clamp(1.5rem,4vw,3rem)}
+.auth-form .fw{width:100%; max-width:400px}
+.auth-form h2{font-size:2rem; margin-bottom:.4rem}
+.authswitch{display:flex; background:var(--paper-2); border-radius:var(--r-pill); padding:.25rem; margin:1.4rem 0}
+.authswitch button{flex:1; border:none; background:none; padding:.6rem; border-radius:var(--r-pill); font-family:var(--font-u); font-weight:700; cursor:pointer; color:var(--ink-2); font-size:.9rem}
+.authswitch button.on{background:#fff; color:var(--green); box-shadow:var(--sh-1)}
+.divider{display:flex; align-items:center; gap:1rem; color:var(--ink-3); font-size:.82rem; margin:1.2rem 0}
+.divider::before,.divider::after{content:""; flex:1; height:1px; background:var(--line)}
+.social{display:flex; gap:.7rem}
+.social .btn{flex:1}
+
+/* modal + toast */
+.modal-bg{position:fixed; inset:0; background:rgba(35,7,49,.45); backdrop-filter:blur(3px); z-index:100; display:none; align-items:center; justify-content:center; padding:1.5rem}
+.modal-bg.on{display:flex; animation:fade .2s}
+.modal{background:#fff; border-radius:var(--r-lg); padding:2rem; max-width:440px; width:100%; text-align:center; box-shadow:var(--sh-3); animation:pop .25s var(--ease)}
+.modal .mic{width:64px; height:64px; border-radius:50%; background:var(--green-wash); color:var(--green); display:grid; place-items:center; margin:0 auto 1.2rem}
+.modal .mic svg{width:30px; height:30px}
+.modal h3{font-size:1.5rem; margin-bottom:.5rem}
+@keyframes fade{from{opacity:0}} @keyframes pop{from{opacity:0; transform:scale(.94)}}
+.toast{position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%) translateY(120%); background:var(--plum-ink); color:#fff; padding:.9rem 1.4rem; border-radius:var(--r-pill); font-weight:600; font-size:.9rem; z-index:120; box-shadow:var(--sh-3); display:flex; align-items:center; gap:.6rem; transition:transform .35s var(--ease)}
+.toast.on{transform:translateX(-50%) translateY(0)}
+.toast svg{width:1.1rem; height:1.1rem; color:var(--green-3)}
+
+/* reveal animation */
+.reveal{opacity:0; transform:translateY(16px); animation:rise .7s var(--ease) forwards}
+@keyframes rise{to{opacity:1; transform:none}}
+.d1{animation-delay:.05s}.d2{animation-delay:.12s}.d3{animation-delay:.2s}.d4{animation-delay:.28s}.d5{animation-delay:.36s}.d6{animation-delay:.44s}
+
+/* responsive */
+@media(max-width:980px){
+  .hero-grid,.calc,.spotlight .sl-grid,.live-grid,.checkout-grid,.chat-grid,.target-grid,.auth,.wiz-split,.even-split{grid-template-columns:1fr}
+  .cards,.steps,.tier-grid,.tiles,.calc-grid,.slide-strip{grid-template-columns:1fr 1fr}
+  .builder{grid-template-columns:1fr}
+  body.in-app .app{grid-template-columns:1fr} .sidebar{display:none}
+  .topnav .links{display:none}
+  .auth-brand{display:none}
+}
+@media(max-width:560px){
+  .cards,.steps,.tier-grid,.tiles,.calc-grid,.grid-2,.grid-3,.slide-strip{grid-template-columns:1fr}
+  .crow{grid-template-columns:1fr; gap:.6rem} .crow .cact{justify-content:flex-start}
+}
+</style>
+</head>
+<body>
+
+<!-- ====================== PUBLIC TOP NAV ====================== -->
+<nav class="topnav">
+  <a class="brand" data-route="landing"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 17l5-5 4 4 8-9"/><path d="M16 7h4v4"/></svg></span> Hustle<span class="sub">Launcher</span></a>
+  <div class="links">
+    <a data-route="landing">Product</a>
+    <a data-route="pricing">Pricing</a>
+    <a data-route="landing" data-scroll="how">How it works</a>
+    <a data-route="landing" data-scroll="insights">Insights</a>
+  </div>
+  <div class="spacer"></div>
+  <div class="nav-actions">
+    <a class="btn-link" data-route="login">Log in</a>
+    <a class="btn btn-primary btn-sm" data-route="register">Start a study <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+  </div>
+</nav>
+
+<div class="public">
+
+<!-- ====================== LANDING ====================== -->
+<section class="view" id="view-landing">
+  <!-- HERO -->
+  <header class="hero">
+    <div class="hero-grid">
+      <div>
+        <span class="eyebrow reveal d1"><svg viewBox="0 0 24 24" width="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Market research, on tap</span>
+        <h1 class="reveal d2">Consumer answers in <em>days</em>, not months.</h1>
+        <p class="lede reveal d3">Hustle PH Launcher lets your team design a study, target real Filipino respondents, watch completions roll in live, and walk away with AI-built insight decks — all in one place.</p>
+        <div class="hero-cta reveal d4">
+          <a class="btn btn-primary btn-lg" data-route="create">Launch a dipstick study <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          <a class="btn btn-ghost btn-lg" data-route="pricing">See pricing</a>
+        </div>
+        <div class="trust reveal d5">
+          <span class="label">Built on Hustle PH's panel of 250,000+ Hustlers</span>
+        </div>
+      </div>
+      <div class="studyviz reveal d4">
+        <div class="viz-float a"><span class="ic ic-green"><svg viewBox="0 0 24 24" width="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg></span> 342 completes today</div>
+        <div class="viz-float b"><span class="ic ic-gold"><svg viewBox="0 0 24 24" width="14" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h7l-1 8 10-12h-7z"/></svg></span> 2.1 days to fill</div>
+        <div class="viz-card">
+          <div class="vc-head">
+            <div>
+              <div class="tiny muted" style="font-weight:700;letter-spacing:.08em;text-transform:uppercase">Live study</div>
+              <div class="vc-title">Snack preferences · Gen Z</div>
+            </div>
+            <span class="pill progress"><span class="dot"></span>In progress</span>
+          </div>
+          <div class="viz-row">
+            <div class="ring" style="--p:68"><div class="rv"><b>68%</b><span>complete</span></div></div>
+            <div class="viz-stats">
+              <div class="viz-stat"><span class="muted">Respondents</span><b>342 / 500</b></div>
+              <div class="viz-stat"><span class="muted">NCR quota</span><b>91%</b></div>
+              <div class="bar"><i style="width:91%"></i></div>
+              <div class="viz-stat"><span class="muted">Female 18–24</span><b>74%</b></div>
+              <div class="bar"><i style="width:74%"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- CAPABILITIES -->
+  <section class="section tickbg" style="background:var(--paper-2)">
+    <div class="wrap">
+      <div class="shead center">
+        <span class="eyebrow">Everything in one launcher</span>
+        <h2>From a blank brief to a boardroom-ready deck</h2>
+        <p>No agency back-and-forth, no spreadsheets stitched by hand. Run the whole study lifecycle yourself.</p>
+      </div>
+      <div class="cards">
+        <div class="fcard reveal d1"><div class="fic ic-green"><svg viewBox="0 0 24 24" width="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></div><h3>Design your survey</h3><p>Drag-and-drop builder — the same engine that powers Hustle's surveys. Logic, quotas, media, and question types built in.</p></div>
+        <div class="fcard reveal d2"><div class="fic ic-gold"><svg viewBox="0 0 24 24" width="22" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3"/></svg></div><h3>Target the right people</h3><p>Slice by age, gender, region, SEC, and category behaviour. Need a niche we don't have on file? We'll source it for a flat +30%.</p></div>
+        <div class="fcard reveal d3"><div class="fic ic-plum"><svg viewBox="0 0 24 24" width="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 3 5-6"/></svg></div><h3>Track completions live</h3><p>Watch responses land in real time. Completion rate, fieldwork pace, and quota fill update as it happens.</p></div>
+        <div class="fcard reveal d2"><div class="fic ic-pink"><svg viewBox="0 0 24 24" width="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg></div><h3>Manage every campaign</h3><p>Run several studies at once. Save drafts at any point, resume later, and see every status from one dashboard.</p></div>
+        <div class="fcard reveal d4"><div class="fic ic-sky"><svg viewBox="0 0 24 24" width="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><h3>Ask your data anything</h3><p>An AI chatbot drills into your results — cross-cuts, drivers, verbatims — in plain language. No analyst required.</p></div>
+        <div class="fcard reveal d5"><div class="fic ic-orange"><svg viewBox="0 0 24 24" width="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M5 3h9l5 5v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M8 13h2v4H8zm4-2h2v6h-2z"/></svg></div><h3>Export &amp; present</h3><p>Auto-generated insight decks (PPT), cross-tabulated Excel, and raw data — ready the moment fieldwork closes.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DIPSTICK SPOTLIGHT -->
+  <section class="section">
+    <div class="wrap">
+      <div class="spotlight">
+        <div class="sl-grid">
+          <div>
+            <span class="eyebrow plum">The Hustle Dipstick</span>
+            <h2 style="margin-top:.7rem">A fast read on any question, fully managed.</h2>
+            <p style="color:rgba(255,255,255,.8); font-size:1.08rem; margin-top:.8rem; max-width:46ch">Our flagship quick-turn study. Perfect for concept checks, pricing sanity tests, and pulse reads. You bring the questions — we handle the rest.</p>
+            <div class="specs">
+              <div class="spec"><b>5</b><span>questions</span></div>
+              <div class="spec"><b>500</b><span>respondents</span></div>
+              <div class="spec"><b>5</b><span>demographic filters</span></div>
+              <div class="spec"><b>~3</b><span>days to results</span></div>
+            </div>
+          </div>
+          <div class="price-card">
+            <div class="from">Flat package · all-in</div>
+            <!-- PLACEHOLDER PRICE — confirm headline figure with Luis -->
+            <div class="amt">₱149<small>,000</small></div>
+            <div class="note">Includes survey design help, fieldwork, AI insight deck &amp; Excel export. VAT inclusive.</div>
+            <a class="btn btn-gold btn-block btn-lg" data-route="create">Start a dipstick</a>
+            <a class="btn-link" style="margin-top:.9rem;display:inline-flex" data-route="pricing">Need something custom? →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="section tickbg" id="anchor-how" style="background:var(--paper-2)">
+    <div class="wrap">
+      <div class="shead">
+        <span class="eyebrow">How it works</span>
+        <h2>Four steps from question to insight</h2>
+      </div>
+      <div class="steps">
+        <div class="stepc reveal d1"><div class="n">01</div><h3>Design</h3><p>Build your survey in the drag-and-drop editor, or start from the dipstick template.</p></div>
+        <div class="stepc reveal d2"><div class="n">02</div><h3>Target &amp; price</h3><p>Pick your audience and sample. Your quote updates instantly as you go.</p></div>
+        <div class="stepc reveal d3"><div class="n">03</div><h3>Pay &amp; launch</h3><p>Check out with a card, GCash, or a voucher. Fieldwork starts within hours.</p></div>
+        <div class="stepc reveal d4"><div class="n">04</div><h3>Track &amp; learn</h3><p>Follow completions live, then explore your AI deck, chatbot, and cross-tabs.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INSIGHTS TEASER -->
+  <section class="section" id="anchor-insights">
+    <div class="wrap">
+      <div class="hero-grid" style="align-items:center">
+        <div>
+          <span class="eyebrow">When fieldwork closes</span>
+          <h2 style="font-size:clamp(1.9rem,3.6vw,2.9rem);margin-top:.7rem">Insights that write themselves</h2>
+          <p class="lede" style="margin-top:1rem">The moment your last response lands, Launcher gets to work — turning raw data into a story your stakeholders can act on.</p>
+          <ul style="list-style:none; margin-top:1.4rem; display:flex; flex-direction:column; gap:1rem">
+            <li style="display:flex;gap:.8rem"><span class="fic ic-green" style="width:38px;height:38px;flex:none"><svg viewBox="0 0 24 24" width="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v12H4z"/><path d="M8 20h8M12 16v4"/></svg></span><div><b>AI insight deck (PPT)</b><div class="muted tiny">A presentation-ready story with charts, key findings, and recommendations.</div></div></li>
+            <li style="display:flex;gap:.8rem"><span class="fic ic-plum" style="width:38px;height:38px;flex:none"><svg viewBox="0 0 24 24" width="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 3v18"/></svg></span><div><b>Cross-tabulated Excel</b><div class="muted tiny">Every question cut by every demographic, ready for your own analysis.</div></div></li>
+            <li style="display:flex;gap:.8rem"><span class="fic ic-gold" style="width:38px;height:38px;flex:none"><svg viewBox="0 0 24 24" width="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span><div><b>Ask-your-data chatbot</b><div class="muted tiny">"What drove preference among 25–34s?" — answered in seconds.</div></div></li>
+          </ul>
+        </div>
+        <div class="panel" style="box-shadow:var(--sh-2)">
+          <div class="chat-head" style="border:none;padding:0 0 1rem">
+            <span class="ai-av"><svg viewBox="0 0 24 24" width="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a5 5 0 0 1 5 5v1a5 5 0 0 1-10 0V7a5 5 0 0 1 5-5z"/><path d="M5 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/></svg></span>
+            <div><b>Hustle Insight AI</b><div class="tiny muted">Snack preferences · Gen Z</div></div>
+          </div>
+          <div class="msg user" style="max-width:90%">Which flavour won with female respondents?</div>
+          <div class="msg ai" style="max-width:95%;margin-top:.8rem">Among female respondents (n=186), <b>Ube Cheesecake</b> led at <b>41%</b>, ahead of Classic Cheese (29%). The gap widens in NCR (+15pts).
+            <div class="mini-chart"><i style="height:80%"></i><i style="height:58%"></i><i style="height:44%"></i><i style="height:30%"></i></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="section">
+    <div class="wrap">
+      <div class="ctaband">
+        <h2>Your next decision, backed by real data.</h2>
+        <p>Set up a study in minutes. Browse and build for free — pay only when you're ready to launch.</p>
+        <a class="btn btn-gold btn-lg" data-route="register">Create your free account</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="foot">
+    <div class="fg">
+      <div>
+        <div class="brand"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 17l5-5 4 4 8-9"/><path d="M16 7h4v4"/></svg></span> Hustle<span class="sub" style="color:var(--gold)">Launcher</span></div>
+        <p style="max-width:30ch;font-size:.9rem">Self-serve consumer research powered by Agile Data Solutions Inc. and the Hustle PH panel.</p>
+      </div>
+      <div><h4>Product</h4><a data-route="landing">Overview</a><a data-route="pricing">Pricing</a><a data-route="create">Survey builder</a><a data-route="register">Live tracking</a></div>
+      <div><h4>Company</h4><a>About Hustle PH</a><a>Panel &amp; methodology</a><a>Privacy &amp; data</a><a>Contact</a></div>
+      <div><h4>Get started</h4><a data-route="register">Create account</a><a data-route="login">Log in</a><a data-route="pricing">Pricing calculator</a></div>
+    </div>
+    <div class="bottom"><span>© 2026 Agile Data Solutions Inc. · Hustle PH</span><span>launcher.hustle-ph.com</span></div>
+  </footer>
+</section>
+
+<!-- ====================== PRICING ====================== -->
+<section class="view" id="view-pricing" style="display:none">
+  <section class="section" style="padding-bottom:1rem">
+    <div class="wrap center">
+      <span class="eyebrow">Pricing</span>
+      <h2 style="font-size:clamp(2rem,4vw,3rem);margin-top:.8rem">Pay for the answers, not the overhead</h2>
+      <p class="lede center" style="margin-top:.8rem">Start with our flagship dipstick, or build a fully custom study. Estimate it yourself — no sales call needed.</p>
+    </div>
+  </section>
+  <section class="section" style="padding-top:1.5rem">
+    <div class="wrap">
+      <div class="tier-grid">
+        <div class="tier">
+          <h3>Pulse</h3>
+          <div class="tprice">₱79<small>,000</small></div>
+          <div class="tsub">Quick gut-check with a smaller sample.</div>
+          <ul>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg> Up to 3 questions</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg> 250 respondents</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg> 2 demographic filters</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg> Dashboard + Excel export</li>
+          </ul>
+          <a class="btn btn-ghost btn-block" data-route="create">Choose Pulse</a>
+        </div>
+        <div class="tier feat">
+          <span class="ribbon">Most popular</span>
+          <h3>Dipstick</h3>
+          <!-- PLACEHOLDER PRICE -->
+          <div class="tprice">₱149<small>,000</small></div>
+          <div class="tsub">Our flagship quick-turn study. The fastest path to a confident read.</div>
+          <ul>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg> <b>5 questions · 500 respondents</b></li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg> 5 demographic filters</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg> Live completion tracking</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg> AI insight deck + chatbot</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg> Cross-tabulated Excel</li>
+          </ul>
+          <a class="btn btn-primary btn-block" data-route="create">Start a dipstick</a>
+        </div>
+        <div class="tier">
+          <h3>Custom</h3>
+          <div class="tprice">From ₱180k</div>
+          <div class="tsub">Bigger samples, niche audiences, deeper analysis.</div>
+          <ul>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg> Unlimited questions</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg> Any sample size</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg> Niche &amp; sourced audiences (+30%)</li>
+            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg> Full insights report</li>
+          </ul>
+          <a class="btn btn-ghost btn-block" id="open-calc-tier">Build a quote</a>
+        </div>
+      </div>
+
+      <div class="calc-toggle">
+        <button class="btn btn-plum" id="calc-toggle-btn"><svg viewBox="0 0 24 24" width="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h8M8 14h4"/></svg> Open the advanced quote calculator</button>
+      </div>
+
+      <!-- ADVANCED CALCULATOR -->
+      <div id="calc-wrap" style="display:none">
+        <div class="tickrule" style="margin-bottom:2rem"></div>
+        <div class="calc">
+          <div class="calc-panel">
+            <span class="eyebrow">Quantitative study</span>
+            <h3 style="margin-top:.5rem">Build your custom quote</h3>
+            <p class="muted tiny">Adjust any parameter — your estimate updates live, using Hustle PH's quantitative pricing model. The <b>Dipstick</b> is a separate fixed ₱149,000 bundle; this calculator prices fully custom studies.</p>
+            <div class="calc-grid">
+              <div class="field full">
+                <label class="lab">Sample size <span class="hint" id="ss-label">500 respondents</span></label>
+                <input type="range" id="c-sample" min="100" max="3000" step="50" value="500">
+              </div>
+              <div class="field">
+                <label class="lab">Audience segment</label>
+                <select class="sel" id="c-audience">
+                  <option value="300" selected>General Population — ₱300/complete</option>
+                  <option value="350">Supermarket / Grocery Shoppers — ₱350</option>
+                  <option value="350">Online Shoppers — ₱350</option>
+                  <option value="350">Parents / Decision-Makers — ₱350</option>
+                  <option value="350">G-Cash / E-Wallet Users — ₱350</option>
+                  <option value="350">Students (SHS / College) — ₱350</option>
+                  <option value="600">Employed Adults — ₱600</option>
+                  <option value="750">Higher SECs (ABC1) — ₱750</option>
+                  <option value="1000">Supervisors / Team Leaders — ₱1,000</option>
+                  <option value="1500">Managers / Dept Heads — ₱1,500</option>
+                  <option value="1600">Business Owners / SME — ₱1,600</option>
+                  <option value="1600">IT Professionals — ₱1,600</option>
+                  <option value="1800">Executives / C-Suite — ₱1,800</option>
+                  <option value="1800">Healthcare Professionals — ₱1,800</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="lab">Survey length</label>
+                <select class="sel" id="c-length">
+                  <option value="0.75">Very Short (1–5 min)</option>
+                  <option value="0.90" selected>Short (6–10 min)</option>
+                  <option value="1.00">Standard (11–15 min)</option>
+                  <option value="1.20">Long (16–20 min)</option>
+                  <option value="1.45">Very Long (21–30 min)</option>
+                  <option value="1.75">Extended (30+ min)</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="lab">Geography</label>
+                <select class="sel" id="c-geo">
+                  <option value="1.00" selected>National</option>
+                  <option value="0.90">NCR Only</option>
+                  <option value="0.98">Luzon Only</option>
+                  <option value="1.08">Visayas Only</option>
+                  <option value="1.10">Mindanao Only</option>
+                  <option value="1.15">Specific Region</option>
+                  <option value="1.25">Specific Province</option>
+                  <option value="1.30">Specific City</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="lab">Incidence rate</label>
+                <select class="sel" id="c-incidence">
+                  <option value="1.00" selected>75%+ (Very High)</option>
+                  <option value="1.20">50–74% (High)</option>
+                  <option value="1.35">25–49% (Moderate)</option>
+                  <option value="1.60">10–24% (Low)</option>
+                  <option value="1.90">Below 10% (Very Low)</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="lab">Timeline</label>
+                <select class="sel" id="c-timeline">
+                  <option value="1.00" selected>Flexible (4+ weeks)</option>
+                  <option value="1.05">Standard (3–4 weeks)</option>
+                  <option value="1.15">Fast (2–3 weeks)</option>
+                  <option value="1.30">Urgent (1–2 weeks)</option>
+                  <option value="1.50">Rush (1 week)</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="lab">Open-ended questions</label>
+                <select class="sel" id="c-oeq">
+                  <option value="1.00" selected>None</option>
+                  <option value="1.02">Light (1–3)</option>
+                  <option value="1.05">Moderate (4–6)</option>
+                  <option value="1.10">Heavy (7+)</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="lab">Data quality</label>
+                <select class="sel" id="c-quality">
+                  <option value="1.00" selected>Standard</option>
+                  <option value="1.05">Enhanced</option>
+                  <option value="1.08">Premium</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="lab">Quota controls</label>
+                <select class="sel" id="c-quota">
+                  <option value="0">None</option>
+                  <option value="8000">Gender + Age</option>
+                  <option value="13000" selected>Gender + Age + Region</option>
+                  <option value="12000">Income Bracket</option>
+                  <option value="25000">Custom Multi-Quota (4+)</option>
+                </select>
+              </div>
+              <div class="field full">
+                <label class="lab">Reporting package</label>
+                <select class="sel" id="c-report">
+                  <option value="0">Raw data only</option>
+                  <option value="15000">Basic dashboard</option>
+                  <option value="25000" selected>Full insights report (AI deck + chatbot)</option>
+                </select>
+              </div>
+              <div class="field full">
+                <label class="check" style="padding:.9rem 1rem;border:1.5px dashed var(--gold-deep);border-radius:var(--r-sm);background:var(--gold-wash)">
+                  <input type="checkbox" id="c-custom"><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span>
+                  <span><b>Custom / sourced targeting (+30%)</b><br><span class="tiny" style="color:var(--gold-text)">Apply when your audience isn't already in our panel data and we need to source it.</span></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <aside class="summary">
+            <h4>Quote summary</h4>
+            <div class="qline"><span>Base respondent cost</span><b id="q-base">₱0</b></div>
+            <div class="qline" id="q-length-row"><span>Survey length</span><b id="q-length">—</b></div>
+            <div class="qline" id="q-geo-row"><span>Geography</span><b id="q-geo">—</b></div>
+            <div class="qline" id="q-inc-row"><span>Incidence rate</span><b id="q-inc">—</b></div>
+            <div class="qline" id="q-tl-row"><span>Timeline surcharge</span><b id="q-tl">—</b></div>
+            <div class="qline" id="q-oeq-row"><span>Open-ended premium</span><b id="q-oeq">—</b></div>
+            <div class="qline" id="q-dq-row"><span>Data quality</span><b id="q-dq">—</b></div>
+            <div class="qline" id="q-quota-row"><span>Quota add-on</span><b id="q-quota">—</b></div>
+            <div class="qline" id="q-report-row"><span>Reporting package</span><b id="q-report">—</b></div>
+            <div class="qline surch" id="q-custom-row" style="display:none"><span>Custom targeting (+30%)</span><b id="q-custom">—</b></div>
+            <div class="qline sub"><span>Subtotal (ex-VAT)</span><b id="q-subtotal">₱0</b></div>
+            <div class="qline"><span>VAT (12%)</span><b id="q-vat">₱0</b></div>
+            <div class="qline total"><span>Total</span><b id="q-total">₱0</b></div>
+            <div class="calc-foot">
+              <a class="btn btn-gold btn-block" data-route="create">Start this study</a>
+              <p class="tiny" style="color:rgba(255,255,255,.6);margin-top:.7rem;text-align:center">Estimate only. Final quote confirmed at checkout.</p>
+            </div>
+          </aside>
+        </div>
+        <div class="banner gold" style="margin-top:1.6rem">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+          <div>Looking for focus groups, IDIs, or other qualitative work? Those are quoted separately — <a class="btn-link" style="display:inline" data-route="register">talk to our team</a>.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <footer class="foot">
+    <div class="bottom" style="margin-top:0"><span>© 2026 Agile Data Solutions Inc. · Hustle PH</span><span>launcher.hustle-ph.com</span></div>
+  </footer>
+</section>
+
+<!-- ====================== AUTH (login / register) ====================== -->
+<section class="view" id="view-login" style="display:none">
+  <div class="auth">
+    <div class="auth-brand">
+      <a class="brand" data-route="landing" style="color:#fff"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 17l5-5 4 4 8-9"/><path d="M16 7h4v4"/></svg></span> Hustle<span class="sub" style="color:var(--gold)">Launcher</span></a>
+      <div class="ab-body">
+        <span class="eyebrow plum">Welcome back</span>
+        <h2>Pick up where you left off.</h2>
+        <p style="color:rgba(255,255,255,.78)">Your drafts, live campaigns, and insights are right where you left them.</p>
+        <div class="quote">"We had a flavour decision settled before our next stand-up. The dipstick paid for itself."</div>
+        <div class="ab-stat"><div><b>~3 days</b><span>average turnaround</span></div><div><b>250k+</b><span>respondents on panel</span></div></div>
+      </div>
+    </div>
+    <div class="auth-form">
+      <div class="fw">
+        <div class="authswitch"><button data-route="login" class="on">Log in</button><button data-route="register">Sign up</button></div>
+        <h2>Log in</h2>
+        <p class="muted" style="margin-bottom:1.4rem">Access your campaigns and insights.</p>
+        <div class="field"><label class="lab">Work email</label><div class="inp-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg><input class="inp" placeholder="you@company.com" value="maya@nestle.com.ph"></div></div>
+        <div class="field"><label class="lab">Password</label><div class="inp-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><input class="inp" type="password" value="········"></div></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.2rem"><label class="check"><input type="checkbox" checked><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="tiny">Remember me</span></label><a class="btn-link tiny">Forgot password?</a></div>
+        <button class="btn btn-primary btn-block btn-lg" data-route="dashboard" data-auth="1">Log in</button>
+        <div class="divider">or continue with</div>
+        <div class="social"><button class="btn btn-ghost" data-route="dashboard" data-auth="1">Google</button><button class="btn btn-ghost" data-route="dashboard" data-auth="1">Microsoft</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="view" id="view-register" style="display:none">
+  <div class="auth">
+    <div class="auth-brand">
+      <a class="brand" data-route="landing" style="color:#fff"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 17l5-5 4 4 8-9"/><path d="M16 7h4v4"/></svg></span> Hustle<span class="sub" style="color:var(--gold)">Launcher</span></a>
+      <div class="ab-body">
+        <span class="eyebrow plum">Free to start</span>
+        <h2>Build first. Pay when you launch.</h2>
+        <p style="color:rgba(255,255,255,.78)">Create an account to design surveys and price studies for free. You'll only need to pay when you release a campaign to the field.</p>
+        <ul style="list-style:none;margin-top:1.6rem;display:flex;flex-direction:column;gap:.9rem">
+          <li style="display:flex;gap:.6rem;align-items:center"><svg viewBox="0 0 24 24" width="20" fill="none" stroke="var(--gold)" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg> Design unlimited surveys</li>
+          <li style="display:flex;gap:.6rem;align-items:center"><svg viewBox="0 0 24 24" width="20" fill="none" stroke="var(--gold)" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg> Save as many drafts as you like</li>
+          <li style="display:flex;gap:.6rem;align-items:center"><svg viewBox="0 0 24 24" width="20" fill="none" stroke="var(--gold)" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg> Get an instant price for any study</li>
+        </ul>
+      </div>
+    </div>
+    <div class="auth-form">
+      <div class="fw">
+        <div class="authswitch"><button data-route="login">Log in</button><button data-route="register" class="on">Sign up</button></div>
+        <h2>Create your account</h2>
+        <p class="muted" style="margin-bottom:1.4rem">No card needed to start building.</p>
+        <div class="grid-2"><div class="field"><label class="lab">First name</label><input class="inp" placeholder="Maya"></div><div class="field"><label class="lab">Last name</label><input class="inp" placeholder="Anders"></div></div>
+        <div class="field"><label class="lab">Work email</label><input class="inp" placeholder="you@company.com"></div>
+        <div class="field"><label class="lab">Company</label><input class="inp" placeholder="Company name"></div>
+        <div class="field"><label class="lab">Password</label><input class="inp" type="password" placeholder="Create a password"></div>
+        <label class="check" style="margin:.3rem 0 1.2rem"><input type="checkbox" checked><span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span class="tiny">I agree to the Terms of Service &amp; Privacy Policy</span></label>
+        <button class="btn btn-primary btn-block btn-lg" data-route="dashboard" data-auth="1">Create account &amp; start building</button>
+        <p class="tiny muted center" style="margin-top:1rem">Already have an account? <a class="btn-link" style="display:inline" data-route="login">Log in</a></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div><!-- /public -->
+
+<!-- ====================== APP SHELL ====================== -->
+<div class="app">
+  <aside class="sidebar">
+    <a class="brand" data-route="dashboard"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 17l5-5 4 4 8-9"/><path d="M16 7h4v4"/></svg></span> Hustle<span class="sub">Launcher</span></a>
+    <div class="side-cta"><a class="btn btn-gold btn-block btn-sm" data-route="create"><svg viewBox="0 0 24 24" width="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg> New campaign</a></div>
+    <nav class="snav">
+      <a data-route="dashboard" data-nav="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg> Dashboard</a>
+      <a data-route="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 3 5-6"/></svg> Campaigns</a>
+      <a data-route="campaign" data-nav="campaign"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> Live tracking</a>
+      <a data-route="insights" data-nav="insights"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12c.5.5 1 1.5 1 2h6c0-.5.5-1.5 1-2a7 7 0 0 0-4-12z"/></svg> Insights</a>
+      <div class="sgroup">Account</div>
+      <a data-route="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg> Billing &amp; invoices</a>
+      <a data-route="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.8.4-1 .8-1 1.7M12 17h.01"/></svg> Help</a>
+    </nav>
+    <div class="userchip" data-route="landing" title="Log out (back to marketing site)">
+      <span class="av">MA</span>
+      <div class="ud"><b>Maya Anders</b><span>Nestlé PH · Brand</span></div>
+      <svg viewBox="0 0 24 24" width="16" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+    </div>
+    <div class="guestchip" data-route="register"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3"/></svg> Sign in to save your work</div>
+  </aside>
+  <div class="main">
+    <!-- ============ DASHBOARD ============ -->
+    <section class="view" id="view-dashboard" style="display:none">
+      <div class="topbar">
+        <h1>Dashboard</h1>
+        <div class="spacer"></div>
+        <div class="credit"><svg viewBox="0 0 24 24" width="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> ₱20,000 voucher credit</div>
+        <button class="icbtn"><span class="ndot"></span><svg viewBox="0 0 24 24" width="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 0 1-3.4 0"/></svg></button>
+        <button class="btn btn-primary btn-sm" data-route="create"><svg viewBox="0 0 24 24" width="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg> New campaign</button>
+      </div>
+      <div class="content">
+        <div style="margin-bottom:1.6rem">
+          <h2 class="serif" style="font-size:1.7rem">Good morning, Maya 👋</h2>
+          <p class="muted">You have 2 studies in field and 3 drafts waiting to launch.</p>
+        </div>
+        <div class="tiles">
+          <div class="tile reveal d1"><div class="tl-ic ic-green"><svg viewBox="0 0 24 24" width="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><div class="tl-v">2</div><div class="tl-l">In field</div><div class="tl-d up">▲ 1 finishing today</div></div>
+          <div class="tile reveal d2"><div class="tl-ic ic-gold"><svg viewBox="0 0 24 24" width="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></div><div class="tl-v">3</div><div class="tl-l">Drafts</div><div class="tl-d">Resume any time</div></div>
+          <div class="tile reveal d3"><div class="tl-ic ic-plum"><svg viewBox="0 0 24 24" width="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg></div><div class="tl-v">5</div><div class="tl-l">Completed</div><div class="tl-d">3 decks ready</div></div>
+          <div class="tile reveal d4"><div class="tl-ic ic-sky"><svg viewBox="0 0 24 24" width="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="tl-v">4,250</div><div class="tl-l">Respondents reached</div><div class="tl-d up">▲ 342 this week</div></div>
+        </div>
+
+        <div class="panel pad0">
+          <div class="filterbar">
+            <h3 class="serif" style="font-size:1.2rem;margin-right:auto">Your campaigns</h3>
+            <div class="segbtn" id="dash-seg">
+              <button class="on" data-filter="all">All</button>
+              <button data-filter="draft">Drafts</button>
+              <button data-filter="progress">In field</button>
+              <button data-filter="completed">Completed</button>
+            </div>
+          </div>
+          <div id="camp-list">
+            <div class="crow" data-status="progress">
+              <div class="cmeta"><b>Snack preferences · Gen Z</b><span>Dipstick · 5 questions · launched 6 days ago</span></div>
+              <div><span class="pill progress"><span class="dot"></span>In field</span></div>
+              <div class="cprog"><div class="pt"><span>342 / 500</span><span class="muted">68%</span></div><div class="bar"><i style="width:68%"></i></div></div>
+              <div class="cact"><button class="btn btn-primary btn-sm" data-route="campaign">View live</button></div>
+            </div>
+            <div class="crow" data-status="progress">
+              <div class="cmeta"><b>Coffee price sensitivity</b><span>Custom · 8 questions · launched 2 days ago</span></div>
+              <div><span class="pill progress"><span class="dot"></span>In field</span></div>
+              <div class="cprog"><div class="pt"><span>241 / 1,000</span><span class="muted">24%</span></div><div class="bar"><i style="width:24%"></i></div></div>
+              <div class="cact"><button class="btn btn-primary btn-sm" data-route="campaign">View live</button></div>
+            </div>
+            <div class="crow" data-status="payment">
+              <div class="cmeta"><b>Logo refresh A/B test</b><span>Dipstick · ready to launch</span></div>
+              <div><span class="pill payment"><span class="dot"></span>Awaiting payment</span></div>
+              <div class="cprog"><span class="muted tiny">Quote locked · ₱149,000</span></div>
+              <div class="cact"><button class="btn btn-gold btn-sm" data-route="checkout">Pay &amp; launch</button></div>
+            </div>
+            <div class="crow" data-status="draft">
+              <div class="cmeta"><b>Q3 brand tracker</b><span>Custom · 12 questions · edited 1h ago</span></div>
+              <div><span class="pill draft"><span class="dot"></span>Draft</span></div>
+              <div class="cprog"><span class="muted tiny">Survey 80% built</span></div>
+              <div class="cact"><button class="btn btn-ghost btn-sm" data-route="create">Resume</button></div>
+            </div>
+            <div class="crow" data-status="draft">
+              <div class="cmeta"><b>Packaging concept B</b><span>Dipstick · edited yesterday</span></div>
+              <div><span class="pill draft"><span class="dot"></span>Draft</span></div>
+              <div class="cprog"><span class="muted tiny">Targeting not set</span></div>
+              <div class="cact"><button class="btn btn-ghost btn-sm" data-route="create">Resume</button></div>
+            </div>
+            <div class="crow" data-status="draft">
+              <div class="cmeta"><b>New SKU naming</b><span>Dipstick · edited 3 days ago</span></div>
+              <div><span class="pill draft"><span class="dot"></span>Draft</span></div>
+              <div class="cprog"><span class="muted tiny">Questions drafted</span></div>
+              <div class="cact"><button class="btn btn-ghost btn-sm" data-route="create">Resume</button></div>
+            </div>
+            <div class="crow" data-status="completed">
+              <div class="cmeta"><b>Holiday campaign recall</b><span>Dipstick · closed 12 days ago</span></div>
+              <div><span class="pill completed"><span class="dot"></span>Completed</span></div>
+              <div class="cprog"><div class="pt"><span>500 / 500</span><span class="muted">100%</span></div><div class="bar"><i style="width:100%"></i></div></div>
+              <div class="cact"><button class="btn btn-primary btn-sm" data-route="insights">View insights</button></div>
+            </div>
+            <div class="crow" data-status="completed">
+              <div class="cmeta"><b>Detergent usage habits</b><span>Custom · closed 1 month ago</span></div>
+              <div><span class="pill completed"><span class="dot"></span>Completed</span></div>
+              <div class="cprog"><div class="pt"><span>800 / 800</span><span class="muted">100%</span></div><div class="bar"><i style="width:100%"></i></div></div>
+              <div class="cact"><button class="btn btn-primary btn-sm" data-route="insights">View insights</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CAMPAIGN — LIVE TRACKING ============ -->
+    <section class="view" id="view-campaign" style="display:none">
+      <div class="topbar">
+        <div><div class="crumb"><span data-route="dashboard" style="cursor:pointer">Campaigns</span> / Live</div><h1>Snack preferences · Gen Z</h1></div>
+        <div class="spacer"></div>
+        <span class="pill progress" style="font-size:.8rem"><span class="dot"></span>In field</span>
+        <button class="btn btn-ghost btn-sm"><svg viewBox="0 0 24 24" width="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8M16 6l-4-4-4 4M12 2v14"/></svg> Share</button>
+        <button class="btn btn-ghost btn-sm" id="pause-btn"><svg viewBox="0 0 24 24" width="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> Pause</button>
+      </div>
+      <div class="content">
+        <span class="livebadge"><span class="blink"></span> Live · updates every few seconds</span>
+        <div class="live-grid">
+          <div class="bigring-card reveal d1">
+            <div class="bigring" id="big-ring" style="--p:0"><div class="rv"><b id="ring-pct">0%</b><span>complete</span></div></div>
+            <div style="font-family:var(--font-d);font-size:1.3rem"><span id="ring-count">0</span> <span class="muted" style="font-size:1rem">/ 500 respondents</span></div>
+            <div class="minigrid">
+              <div class="mini"><div class="mv">+38<span class="muted" style="font-size:.9rem">/hr</span></div><div class="ml">Completion pace</div></div>
+              <div class="mini"><div class="mv">94%</div><div class="ml">Quality pass rate</div></div>
+              <div class="mini"><div class="mv">2.4<span class="muted" style="font-size:.9rem">min</span></div><div class="ml">Median time</div></div>
+              <div class="mini"><div class="mv">Jun 24</div><div class="ml">Est. completion</div></div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:1.4rem">
+            <div class="panel">
+              <div class="panel-head" style="padding:0 0 1rem;border-color:var(--line)"><h3>Completions over time</h3><div class="spacer"></div><span class="tag green">On pace</span></div>
+              <div class="chartwrap">
+                <svg viewBox="0 0 620 220" style="width:100%;height:auto" preserveAspectRatio="none">
+                  <line x1="30" y1="190" x2="590" y2="190" stroke="#E4DCD2"/><line x1="30" y1="105" x2="590" y2="105" stroke="#EFE8DF"/><line x1="30" y1="20" x2="590" y2="20" stroke="#EFE8DF"/>
+                  <text x="22" y="194" font-size="11" fill="#A9A199" text-anchor="end">0</text><text x="22" y="109" font-size="11" fill="#A9A199" text-anchor="end">250</text><text x="22" y="24" font-size="11" fill="#A9A199" text-anchor="end">500</text>
+                  <polyline points="30,190 590,20" fill="none" stroke="#A9A199" stroke-width="1.5" stroke-dasharray="5 5"/>
+                  <polygon points="30,190 110,176 190,158 270,136 350,114 430,93 510,80 590,74 590,190 30,190" fill="rgba(39,191,157,.14)"/>
+                  <polyline points="30,190 110,176 190,158 270,136 350,114 430,93 510,80 590,74" fill="none" stroke="#147F67" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                  <circle cx="590" cy="74" r="5" fill="#147F67" stroke="#fff" stroke-width="2"/>
+                </svg>
+                <div class="legend"><span><i style="background:#147F67"></i>Actual completes</span><span><i style="background:#A9A199"></i>Target pace</span></div>
+              </div>
+            </div>
+            <div class="even-split">
+              <div class="panel">
+                <div class="panel-head" style="padding:0 0 1rem"><h3>Quota fill</h3></div>
+                <div class="quota">
+                  <div class="qrow"><div class="qh"><span>NCR</span><span>137 / 150</span></div><div class="qbar"><i style="width:91%"></i></div></div>
+                  <div class="qrow"><div class="qh"><span>Luzon (ex-NCR)</span><span>98 / 125</span></div><div class="qbar"><i style="width:78%"></i></div></div>
+                  <div class="qrow"><div class="qh"><span>Visayas</span><span>57 / 110</span></div><div class="qbar"><i style="width:52%"></i></div></div>
+                  <div class="qrow"><div class="qh"><span>Mindanao</span><span>50 / 115</span></div><div class="qbar"><i style="width:43%"></i></div></div>
+                </div>
+              </div>
+              <div class="panel">
+                <div class="panel-head" style="padding:0 0 1rem"><h3>Recent completes</h3></div>
+                <div class="feed" id="live-feed">
+                  <div class="fitem"><span class="fav">JR</span><div class="ft"><b>J. Reyes</b> · Female, 22<div class="fmeta">Quezon City, NCR</div></div><span class="fmeta">just now</span></div>
+                  <div class="fitem"><span class="fav">MD</span><div class="ft"><b>M. Dela Cruz</b> · Male, 19<div class="fmeta">Cebu City</div></div><span class="fmeta">1m ago</span></div>
+                  <div class="fitem"><span class="fav">AS</span><div class="ft"><b>A. Santos</b> · Female, 24<div class="fmeta">Davao City</div></div><span class="fmeta">3m ago</span></div>
+                  <div class="fitem"><span class="fav">KL</span><div class="ft"><b>K. Lim</b> · Female, 21<div class="fmeta">Makati, NCR</div></div><span class="fmeta">4m ago</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CREATE CAMPAIGN WIZARD ============ -->
+    <section class="view" id="view-create" style="display:none">
+      <div class="topbar">
+        <div><div class="crumb"><span data-route="dashboard" style="cursor:pointer">Campaigns</span> / New</div><h1>New campaign</h1></div>
+        <div class="spacer"></div>
+        <span class="savechip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg> Draft saved automatically</span>
+        <button class="btn btn-ghost btn-sm" id="save-draft-btn"><svg viewBox="0 0 24 24" width="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg> Save &amp; exit</button>
+      </div>
+      <div class="content">
+        <div class="banner gold guest-only" style="margin-bottom:1.4rem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><div>You're exploring as a <b>guest</b> — build and price freely. <a class="btn-link" style="display:inline" data-route="register">Sign in</a> to save your draft or launch to the field.</div></div>
+        <div class="stepper" id="create-stepper">
+          <div class="st cur" data-step="setup"><span class="num">1</span> Setup</div><span class="sline"></span>
+          <div class="st" data-step="build"><span class="num">2</span> Build survey</div><span class="sline"></span>
+          <div class="st" data-step="target"><span class="num">3</span> Targeting</div><span class="sline"></span>
+          <div class="st" data-step="review"><span class="num">4</span> Review &amp; pay</div>
+        </div>
+
+        <!-- STEP 1: SETUP -->
+        <div class="wstep" id="step-setup">
+          <div class="wiz-split">
+            <div class="panel">
+              <h3 class="serif" style="font-size:1.3rem;margin-bottom:.3rem">Tell us about your study</h3>
+              <p class="muted tiny" style="margin-bottom:1.3rem">You can change all of this later.</p>
+              <div class="field"><label class="lab">Campaign name</label><input class="inp" value="Snack flavour concept test"></div>
+              <div class="field"><label class="lab">What do you want to learn? <span class="hint">helps the AI tailor your insight deck</span></label><textarea class="inp" rows="3">Which of three new ube-based snack flavours has the strongest appeal among Gen Z, and is the proposed price acceptable?</textarea></div>
+              <div class="field"><label class="lab">Choose a package</label>
+                <div class="grid-3" id="pkg-pick">
+                  <label class="check" style="flex-direction:column;align-items:flex-start;border:1.5px solid var(--line);border-radius:var(--r-sm);padding:1rem;cursor:pointer"><div style="display:flex;justify-content:space-between;width:100%"><b>Pulse</b><input type="radio" name="pkg" style="display:block"></div><span class="tiny muted">3Q · 250 resp · ₱79k</span></label>
+                  <label class="check" style="flex-direction:column;align-items:flex-start;border:2px solid var(--green);background:var(--green-wash);border-radius:var(--r-sm);padding:1rem;cursor:pointer"><div style="display:flex;justify-content:space-between;width:100%"><b>Dipstick</b><input type="radio" name="pkg" checked style="display:block"></div><span class="tiny" style="color:var(--green-deep)">5Q · 500 resp · ₱149k</span></label>
+                  <label class="check" style="flex-direction:column;align-items:flex-start;border:1.5px solid var(--line);border-radius:var(--r-sm);padding:1rem;cursor:pointer"><div style="display:flex;justify-content:space-between;width:100%"><b>Custom</b><input type="radio" name="pkg" style="display:block"></div><span class="tiny muted">Build your own</span></label>
+                </div>
+              </div>
+            </div>
+            <div class="panel" style="background:var(--well)">
+              <h4 class="serif" style="font-size:1.1rem">Dipstick package</h4>
+              <p class="tiny muted" style="margin-bottom:1rem">What's included</p>
+              <ul style="list-style:none;display:flex;flex-direction:column;gap:.7rem;font-size:.9rem">
+                <li style="display:flex;gap:.5rem"><svg viewBox="0 0 24 24" width="18" fill="none" stroke="var(--green)" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg> 5 questions, 500 respondents</li>
+                <li style="display:flex;gap:.5rem"><svg viewBox="0 0 24 24" width="18" fill="none" stroke="var(--green)" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg> 5 demographic filters</li>
+                <li style="display:flex;gap:.5rem"><svg viewBox="0 0 24 24" width="18" fill="none" stroke="var(--green)" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg> Live tracking + AI deck</li>
+                <li style="display:flex;gap:.5rem"><svg viewBox="0 0 24 24" width="18" fill="none" stroke="var(--green)" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg> Excel cross-tabs + chatbot</li>
+              </ul>
+              <div class="tickrule" style="margin:1.2rem 0"></div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline"><span class="muted tiny">Package price</span><span class="serif" style="font-size:1.8rem">₱149,000</span></div>
+            </div>
+          </div>
+          <div class="wizard-foot"><span class="spacer"></span><button class="btn btn-primary" data-goto="build">Next: Build survey <svg viewBox="0 0 24 24" width="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>
+        </div>
+
+        <!-- STEP 2: BUILD SURVEY -->
+        <div class="wstep" id="step-build" style="display:none">
+          <div class="banner green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg><div>This is the same drag-and-drop survey builder used across Hustle PH — your questions, logic, and quotas carry straight into the field.</div></div>
+          <div class="builder">
+            <div class="bpanel">
+              <div class="bp-h">Add elements</div>
+              <div class="bp-body">
+                <div class="palette-group">Input</div>
+                <div class="palette-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/></svg> Single choice</div>
+                <div class="palette-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 12l3 3 5-6"/></svg> Multiple choice</div>
+                <div class="palette-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h16M4 12h10M4 17h16"/></svg> Short answer</div>
+                <div class="palette-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 10h16M4 14h12M4 18h16"/></svg> Long answer</div>
+                <div class="palette-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 18l4-9 4 5 3-7 5 11"/></svg> Rating / Likert</div>
+                <div class="palette-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M12 3v18"/></svg> Number</div>
+                <div class="palette-group">Display</div>
+                <div class="palette-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 14l5-4 4 3 4-4 5 4"/></svg> Image</div>
+                <div class="palette-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg> Video</div>
+                <div class="palette-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h10"/></svg> Text block</div>
+              </div>
+            </div>
+            <div class="bpanel" style="background:transparent;border:none">
+              <div class="canvas" style="padding:1.1rem;flex:1;overflow:auto">
+                <div class="qcard sel"><div class="qn">Q1 · SINGLE CHOICE</div><span class="grip"><svg viewBox="0 0 24 24" width="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="18" r="1"/></svg></span><div class="qt">Which new snack flavour appeals to you most?</div><div class="qopt"><span class="qo-mark"></span> Ube Cheesecake</div><div class="qopt"><span class="qo-mark"></span> Classic Cheese</div><div class="qopt"><span class="qo-mark"></span> Salted Caramel</div></div>
+                <div class="qcard"><div class="qn">Q2 · RATING</div><span class="grip"><svg viewBox="0 0 24 24" width="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="18" r="1"/></svg></span><div class="qt">How likely are you to buy it at ₱35?</div><div style="display:flex;gap:.4rem;margin-top:.3rem">★★★★★</div></div>
+                <div class="qcard"><div class="qn">Q3 · MULTIPLE CHOICE</div><span class="grip"><svg viewBox="0 0 24 24" width="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="6" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="18" r="1"/><circle cx="15" cy="6" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="18" r="1"/></svg></span><div class="qt">Where do you usually buy snacks?</div><div class="qopt"><span class="qo-mark sq"></span> Sari-sari store</div><div class="qopt"><span class="qo-mark sq"></span> Convenience store</div><div class="qopt"><span class="qo-mark sq"></span> Supermarket</div></div>
+                <button class="btn btn-ghost btn-sm" style="width:100%;border-style:dashed"><svg viewBox="0 0 24 24" width="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg> Add question (2 of 5 left)</button>
+              </div>
+            </div>
+            <div class="bpanel">
+              <div class="bp-h">Question settings</div>
+              <div class="bp-body">
+                <div class="prop-row"><div class="lab">Question type</div><select class="sel"><option>Single choice</option><option>Multiple choice</option></select></div>
+                <div class="toggle-row"><span>Required</span><div class="toggle on" data-toggle></div></div>
+                <div class="toggle-row"><span>Randomise options</span><div class="toggle" data-toggle></div></div>
+                <div class="toggle-row"><span>Add "Other" option</span><div class="toggle" data-toggle></div></div>
+                <div class="prop-row"><div class="lab">Skip logic</div><select class="sel"><option>Always show</option><option>Show if Q1 = Ube</option></select></div>
+                <div class="tickrule" style="margin:1rem 0"></div>
+                <div class="bp-h" style="padding:0 0 .6rem">Survey flow</div>
+                <div class="seq-item on"><span class="sq-n">1</span> Welcome &amp; consent</div>
+                <div class="seq-item"><span class="sq-n">2</span> Screener</div>
+                <div class="seq-item"><span class="sq-n">3</span> Main questions</div>
+                <div class="seq-item"><span class="sq-n">4</span> Thank you</div>
+              </div>
+            </div>
+          </div>
+          <div class="wizard-foot"><button class="btn btn-ghost" data-goto="setup"><svg viewBox="0 0 24 24" width="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M11 6l-6 6 6 6"/></svg> Back</button><span class="spacer"></span><button class="btn btn-ghost" id="preview-btn">Preview survey</button><button class="btn btn-primary" data-goto="target">Next: Targeting <svg viewBox="0 0 24 24" width="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>
+        </div>
+
+        <!-- STEP 3: TARGETING -->
+        <div class="wstep" id="step-target" style="display:none">
+          <div class="wiz-split">
+            <div>
+              <div class="banner gold" id="surcharge-banner" style="display:none">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+                <div><b>+30% custom targeting applied.</b> One or more audiences you selected aren't in our panel data yet, so we'll source them for you. The surcharge is reflected in your quote.</div>
+              </div>
+              <div class="target-grid">
+                <div class="target-card"><div class="tc-h"><h4>Age</h4></div><div class="chips"><span class="chip">15–17</span><span class="chip on">18–24</span><span class="chip on">25–34</span><span class="chip">35–44</span><span class="chip">45–54</span><span class="chip">55+</span></div></div>
+                <div class="target-card"><div class="tc-h"><h4>Gender</h4></div><div class="chips"><span class="chip on">Female</span><span class="chip on">Male</span><span class="chip">All</span></div></div>
+                <div class="target-card"><div class="tc-h"><h4>Region</h4></div><div class="chips"><span class="chip on">NCR</span><span class="chip on">Luzon</span><span class="chip on">Visayas</span><span class="chip on">Mindanao</span></div></div>
+                <div class="target-card"><div class="tc-h"><h4>SEC</h4></div><div class="chips"><span class="chip">A</span><span class="chip on">B</span><span class="chip on">C</span><span class="chip">D</span><span class="chip">E</span></div></div>
+                <div class="target-card" style="grid-column:1/-1"><div class="tc-h"><h4>Category behaviour</h4> <span class="tag">in our panel</span></div><div class="chips"><span class="chip on">Snack buyers</span><span class="chip">Online shoppers</span><span class="chip">Parents</span><span class="chip">G-Cash users</span></div></div>
+                <div class="target-card" style="grid-column:1/-1;border-style:dashed"><div class="tc-h"><h4>Niche audiences</h4> <span class="surcharge">needs sourcing · +30%</span></div><div class="chips"><span class="chip custom" data-custom>Pet owners</span><span class="chip custom" data-custom>Diabetics</span><span class="chip custom" data-custom>EV drivers</span><span class="chip custom" data-custom>Gamers (hardcore)</span><span class="chip custom" data-custom>Specific brand loyalists</span></div></div>
+              </div>
+            </div>
+            <aside class="panel" style="position:sticky;top:84px">
+              <h4 class="serif" style="font-size:1.15rem;margin-bottom:.2rem">Audience estimate</h4>
+              <p class="tiny muted" style="margin-bottom:1rem">Based on your selection</p>
+              <div style="display:flex;align-items:baseline;gap:.4rem;margin-bottom:.3rem"><span class="serif" style="font-size:2.4rem">~1.8M</span><span class="muted tiny">reachable</span></div>
+              <div class="bar" style="margin-bottom:1.2rem"><i style="width:62%"></i></div>
+              <div class="tickrule" style="margin:1rem 0"></div>
+              <div class="sum-line" style="padding:.5rem 0;border:none"><span>Dipstick base</span><b>₱149,000</b></div>
+              <div class="sum-line disc" id="surcharge-line" style="padding:.5rem 0;border:none;display:none"><span>Custom targeting (+30%)</span><b id="surcharge-amt">+₱44,700</b></div>
+              <div class="sum-line tot" style="border-radius:var(--r-sm);margin-top:.6rem"><span>Est. total</span><b id="target-total">₱149,000</b></div>
+            </aside>
+          </div>
+          <div class="wizard-foot"><button class="btn btn-ghost" data-goto="build"><svg viewBox="0 0 24 24" width="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M11 6l-6 6 6 6"/></svg> Back</button><span class="spacer"></span><button class="btn btn-primary" data-goto="review">Next: Review <svg viewBox="0 0 24 24" width="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>
+        </div>
+
+        <!-- STEP 4: REVIEW -->
+        <div class="wstep" id="step-review" style="display:none">
+          <div class="wiz-split">
+            <div class="panel">
+              <h3 class="serif" style="font-size:1.3rem;margin-bottom:1rem">Review your campaign</h3>
+              <div class="sum-line" style="padding:.9rem 0"><span class="muted">Campaign</span><b style="font-family:var(--font-u);font-weight:700">Snack flavour concept test</b></div>
+              <div class="sum-line" style="padding:.9rem 0"><span class="muted">Package</span><span>Dipstick · 5Q · 500 respondents</span></div>
+              <div class="sum-line" style="padding:.9rem 0"><span class="muted">Audience</span><span style="text-align:right;max-width:60%">F/M 18–34 · NCR, Luzon, Visayas, Mindanao · SEC B–C · Snack buyers</span></div>
+              <div class="sum-line" style="padding:.9rem 0"><span class="muted">Survey</span><span>5 questions · ~2–3 min</span></div>
+              <div class="sum-line" style="padding:.9rem 0;border:none"><span class="muted">Est. turnaround</span><span>~3 days</span></div>
+              <div class="banner green" style="margin:1.2rem 0 0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg><div>Everything checks out. You can still edit after launch until the first response lands.</div></div>
+            </div>
+            <aside>
+              <div class="summary-card">
+                <div class="sum-line"><span>Dipstick package</span><b>₱149,000</b></div>
+                <div class="sum-line" id="review-surcharge" style="display:none"><span>Custom targeting (+30%)</span><b>₱44,700</b></div>
+                <div class="sum-line"><span>VAT</span><span class="muted tiny">included</span></div>
+                <div class="sum-line tot"><span>Total</span><b id="review-total">₱149,000</b></div>
+              </div>
+              <button class="btn btn-primary btn-block btn-lg" style="margin-top:1rem" data-route="checkout">Proceed to checkout <svg viewBox="0 0 24 24" width="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+              <button class="btn btn-ghost btn-block" style="margin-top:.6rem" data-route="dashboard">Save as draft</button>
+            </aside>
+          </div>
+          <div class="wizard-foot"><button class="btn btn-ghost" data-goto="target"><svg viewBox="0 0 24 24" width="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M11 6l-6 6 6 6"/></svg> Back</button></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CHECKOUT ============ -->
+    <section class="view" id="view-checkout" style="display:none">
+      <div class="topbar">
+        <div><div class="crumb"><span data-route="create" style="cursor:pointer">New campaign</span> / Checkout</div><h1>Checkout</h1></div>
+        <div class="spacer"></div>
+        <span class="savechip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg> Secure payment</span>
+      </div>
+      <div class="content">
+        <div class="checkout-grid">
+          <div>
+            <div class="panel" style="margin-bottom:1.2rem">
+              <h3 class="serif" style="font-size:1.2rem;margin-bottom:1rem">Voucher code</h3>
+              <p class="tiny muted" style="margin-bottom:.4rem">Have a code from your Hustle PH account manager? Apply it here.</p>
+              <div class="voucher"><input class="inp" id="voucher-input" placeholder="e.g. HUSTLE20" value="HUSTLE20"><button class="btn btn-plum" id="apply-voucher">Apply</button></div>
+              <div id="voucher-msg"></div>
+            </div>
+            <div class="panel">
+              <h3 class="serif" style="font-size:1.2rem;margin-bottom:1rem">Payment method</h3>
+              <div id="pay-methods">
+                <div class="pay-method on" data-pay><div class="pm-ic" style="background:#0070E0">CARD</div><div class="pm-d"><b>Credit / debit card</b><span>Visa, Mastercard, JCB</span></div><span class="radio"></span></div>
+                <div class="pay-method" data-pay><div class="pm-ic" style="background:#007DFE">GC</div><div class="pm-d"><b>GCash</b><span>Pay with your GCash wallet</span></div><span class="radio"></span></div>
+                <div class="pay-method" data-pay><div class="pm-ic" style="background:#1A1A1A">Maya</div><div class="pm-d"><b>Maya</b><span>Maya wallet &amp; cards</span></div><span class="radio"></span></div>
+                <div class="pay-method" data-pay><div class="pm-ic" style="background:var(--green)">BANK</div><div class="pm-d"><b>Bank transfer / InstaPay</b><span>Invoice issued · launches on confirmation</span></div><span class="radio"></span></div>
+              </div>
+              <div id="card-fields" style="margin-top:1rem">
+                <div class="field"><label class="lab">Card number</label><input class="inp" placeholder="4242 4242 4242 4242"></div>
+                <div class="grid-2"><div class="field"><label class="lab">Expiry</label><input class="inp" placeholder="MM / YY"></div><div class="field"><label class="lab">CVC</label><input class="inp" placeholder="123"></div></div>
+              </div>
+            </div>
+          </div>
+          <aside>
+            <div class="summary-card">
+              <div class="panel-head"><h3 style="font-size:1.1rem">Order summary</h3></div>
+              <div class="sum-line"><span>Dipstick study<br><span class="tiny muted">Snack flavour concept test</span></span><b>₱149,000</b></div>
+              <div class="sum-line" id="co-surcharge" style="display:none"><span>Custom targeting (+30%)</span><b>₱44,700</b></div>
+              <div class="sum-line disc" id="co-voucher" style="display:none"><span>Voucher HUSTLE20 (−20%)</span><b id="co-disc">−₱29,800</b></div>
+              <div class="sum-line"><span>VAT</span><span class="muted tiny">included</span></div>
+              <div class="sum-line tot"><span>Total due</span><b id="co-total">₱149,000</b></div>
+            </div>
+            <button class="btn btn-primary btn-block btn-lg" style="margin-top:1rem" id="pay-btn"><svg viewBox="0 0 24 24" width="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg> Pay <span id="pay-amt">₱149,000</span> &amp; launch</button>
+            <p class="tiny muted center" style="margin-top:.8rem">Fieldwork begins within hours of confirmation. You'll get a live-tracking link by email.</p>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ INSIGHTS ============ -->
+    <section class="view" id="view-insights" style="display:none">
+      <div class="topbar">
+        <div><div class="crumb"><span data-route="dashboard" style="cursor:pointer">Campaigns</span> / Insights</div><h1>Holiday campaign recall</h1></div>
+        <div class="spacer"></div>
+        <span class="pill completed" style="font-size:.8rem"><span class="dot"></span>Completed · 500 responses</span>
+        <button class="btn btn-ghost btn-sm"><svg viewBox="0 0 24 24" width="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8M16 6l-4-4-4 4M12 2v14"/></svg> Share</button>
+      </div>
+      <div class="content">
+        <div class="tabs" id="insight-tabs">
+          <button class="on" data-tab="deck">AI insight deck</button>
+          <button data-tab="xtab">Cross-tab Excel</button>
+          <button data-tab="ai">Ask the data</button>
+        </div>
+
+        <div class="tabpane on" id="pane-deck">
+          <div class="panel-head" style="padding:0 0 1rem;margin-bottom:1.2rem"><div><h3 class="serif" style="font-size:1.3rem">Auto-generated insight deck</h3><p class="muted tiny">14 slides · refreshed when fieldwork closed</p></div><div class="spacer"></div><button class="btn btn-primary btn-sm" id="dl-ppt"><svg viewBox="0 0 24 24" width="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg> Download .pptx</button></div>
+          <div class="slide-strip">
+            <div class="slide"><div class="sl-k">Headline</div><div class="sl-t">76% recalled the holiday ad unaided</div><div class="sl-bars"><i style="height:90%"></i><i style="height:62%;opacity:.5"></i><i style="height:40%;opacity:.5"></i></div></div>
+            <div class="slide"><div class="sl-k">Key driver</div><div class="sl-t">Music was the #1 memory hook (43%)</div><div class="sl-bars"><i style="height:80%"></i><i style="height:55%"></i><i style="height:48%"></i><i style="height:30%"></i></div></div>
+            <div class="slide"><div class="sl-k">By segment</div><div class="sl-t">Recall peaks with 25–34 in NCR</div><div class="sl-bars"><i style="height:50%"></i><i style="height:88%"></i><i style="height:64%"></i></div></div>
+            <div class="slide"><div class="gen-overlay"><div><div class="livebadge" style="color:var(--green);background:var(--green-wash)"><span class="blink" style="background:var(--green)"></span> Generating</div><p class="tiny muted">Narrative &amp; recommendations slides are being written by the AI. <br>Process &amp; prompts owned by the Market Research team — out of scope here.</p></div></div></div>
+            <div class="slide" style="opacity:.5"></div><div class="slide" style="opacity:.35"></div>
+          </div>
+          <div class="banner gold" style="margin-top:1.4rem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><div>The full AI deck pipeline (narrative, recommendations, prompts) will be defined by the Market Research team — shown here as a placeholder only.</div></div>
+        </div>
+
+        <div class="tabpane" id="pane-xtab">
+          <div class="panel-head" style="padding:0 0 1rem;margin-bottom:1.2rem"><div><h3 class="serif" style="font-size:1.3rem">Cross-tabulated data</h3><p class="muted tiny">Every question cut by every demographic</p></div><div class="spacer"></div><button class="btn btn-primary btn-sm" id="dl-xlsx"><svg viewBox="0 0 24 24" width="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg> Download .xlsx</button></div>
+          <div class="panel pad0" style="overflow:auto">
+            <table class="xtab">
+              <thead><tr><th>Ad recall (unaided)</th><th>Total</th><th>NCR</th><th>Luzon</th><th>Visayas</th><th>Mindanao</th><th>18–24</th><th>25–34</th></tr></thead>
+              <tbody>
+                <tr><td>Recalled</td><td>76%</td><td class="hi">84%</td><td>74%</td><td>71%</td><td>69%</td><td>72%</td><td class="hi">81%</td></tr>
+                <tr><td>Did not recall</td><td>24%</td><td>16%</td><td>26%</td><td>29%</td><td>31%</td><td>28%</td><td>19%</td></tr>
+                <tr><td>Base (n)</td><td>500</td><td>150</td><td>125</td><td>110</td><td>115</td><td>240</td><td>260</td></tr>
+                <tr><td>Liked the music</td><td>43%</td><td>49%</td><td>41%</td><td>40%</td><td>38%</td><td>45%</td><td>42%</td></tr>
+                <tr><td>Would repurchase</td><td>61%</td><td>66%</td><td>59%</td><td>58%</td><td>57%</td><td>55%</td><td class="hi">68%</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="tabpane" id="pane-ai">
+          <div class="chat-grid">
+            <div class="chatbox">
+              <div class="chat-head"><span class="ai-av"><svg viewBox="0 0 24 24" width="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a5 5 0 0 1 5 5v1a5 5 0 0 1-10 0V7a5 5 0 0 1 5-5z"/><path d="M5 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/></svg></span><div><b>Hustle Insight AI</b><div class="tiny muted">Trained on this study's 500 responses</div></div></div>
+              <div class="chat-log" id="chat-log">
+                <div class="msg ai">Hi Maya 👋 Ask me anything about the Holiday campaign recall study — segments, drivers, verbatims, or comparisons. Try a suggestion on the right to get started.</div>
+              </div>
+              <div class="chat-input"><input class="inp" id="chat-input" placeholder="Ask about your results…"><button class="btn btn-primary" id="chat-send"><svg viewBox="0 0 24 24" width="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg></button></div>
+            </div>
+            <div>
+              <div class="lab">Suggested questions</div>
+              <div class="suggest" id="suggest">
+                <div class="sg" data-q="What drove recall among 25–34s?">What drove recall among 25–34s?</div>
+                <div class="sg" data-q="Where was recall weakest?">Where was recall weakest?</div>
+                <div class="sg" data-q="Summarise the top 3 findings.">Summarise the top 3 findings</div>
+                <div class="sg" data-q="Any surprising verbatims?">Any surprising verbatims?</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- modal + toast -->
+<div class="modal-bg" id="modal-bg"><div class="modal" id="modal-body"></div></div>
+<div class="toast" id="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg><span id="toast-text">Saved</span></div>
+
+<script>
+/* ============================ HELPERS ============================ */
+const $=(s,r=document)=>r.querySelector(s); const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const peso=n=>'₱'+Math.round(n).toLocaleString('en-US');
+const signed=n=>(n<0?'−₱':'₱')+Math.abs(Math.round(n)).toLocaleString('en-US');
+let toastT;
+function toast(msg){const t=$('#toast');$('#toast-text').textContent=msg;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),2600);}
+function modal(html){$('#modal-body').innerHTML=html;$('#modal-bg').classList.add('on');}
+function closeModal(){$('#modal-bg').classList.remove('on');}
+$('#modal-bg').addEventListener('click',e=>{if(e.target.id==='modal-bg')closeModal();});
+
+/* ============================ ROUTING ============================ */
+const APP_VIEWS=['dashboard','campaign','create','checkout','insights'];
+let authed=false, pendingRoute=null;
+function showView(id,scrollTo){
+  if(!$('#view-'+id))id='landing';
+  if(id==='checkout' && !authed){ pendingRoute='checkout'; toast('Sign in to launch your study'); id='register'; }
+  if(id==='landing') authed=false; // returning to the marketing site = logged out
+  $$('.view').forEach(v=>v.style.display='none');
+  $('#view-'+id).style.display='block';
+  const inApp=APP_VIEWS.includes(id);
+  document.body.classList.toggle('in-app',inApp);
+  document.body.classList.toggle('guest',inApp && !authed);
+  $$('.snav a').forEach(a=>a.classList.toggle('active',a.dataset.nav===id));
+  window.scrollTo(0,0);
+  if(id==='campaign')setTimeout(animateLive,180);
+  if(id==='create')goStep('setup');
+  if(scrollTo){const el=$('#anchor-'+scrollTo);if(el)setTimeout(()=>el.scrollIntoView({behavior:'smooth'}),60);}
+  history.replaceState(null,'','#'+id);
+}
+document.addEventListener('click',e=>{
+  const r=e.target.closest('[data-route]');
+  if(r){
+    e.preventDefault();
+    if(r.dataset.auth){ authed=true; document.body.classList.remove('guest'); const dest=pendingRoute||'dashboard'; pendingRoute=null; showView(dest); return; }
+    showView(r.dataset.route,r.dataset.scroll);
+  }
+});
+showView((location.hash||'#landing').slice(1));
+
+/* ============================ PRICING CALCULATOR ============================ */
+const calcEls=['c-sample','c-audience','c-length','c-geo','c-incidence','c-timeline','c-oeq','c-quality','c-quota','c-report','c-custom'];
+function setLine(rowId,valId,amt,show=true){
+  const row=$('#'+rowId);if(!row)return;
+  const lbl=row.querySelector('span');
+  if(lbl && !lbl.dataset.base) lbl.dataset.base=lbl.textContent;
+  const z=(!show||Math.round(amt)===0);
+  row.classList.toggle('muted2',z);
+  row.classList.toggle('credit',!z && amt<0);
+  if(lbl && lbl.dataset.base) lbl.textContent=(!z && amt<0)?lbl.dataset.base+' (discount)':lbl.dataset.base;
+  $('#'+valId).textContent=z?'—':signed(amt);
+}
+function calc(){
+  if(!$('#c-sample'))return;
+  const sample=+$('#c-sample').value, cpc=+$('#c-audience').value, base=sample*cpc;
+  const lenM=+$('#c-length').value,geoM=+$('#c-geo').value,incM=+$('#c-incidence').value,tlM=+$('#c-timeline').value,oeqM=+$('#c-oeq').value,dqM=+$('#c-quality').value;
+  const quota=+$('#c-quota').value, report=+$('#c-report').value, adj=m=>(m-1)*base;
+  $('#ss-label').textContent=sample.toLocaleString('en-US')+' respondents';
+  $('#q-base').textContent=peso(base);
+  setLine('q-length-row','q-length',adj(lenM)); setLine('q-geo-row','q-geo',adj(geoM));
+  setLine('q-inc-row','q-inc',adj(incM)); setLine('q-tl-row','q-tl',adj(tlM));
+  setLine('q-oeq-row','q-oeq',adj(oeqM)); setLine('q-dq-row','q-dq',adj(dqM));
+  setLine('q-quota-row','q-quota',quota); setLine('q-report-row','q-report',report);
+  let exVat=base+adj(lenM)+adj(geoM)+adj(incM)+adj(tlM)+adj(oeqM)+adj(dqM)+quota+report;
+  const customRow=$('#q-custom-row');
+  if($('#c-custom').checked){const s=exVat*0.30;exVat+=s;customRow.style.display='flex';$('#q-custom').textContent='+'+peso(s);}
+  else customRow.style.display='none';
+  const vat=exVat*0.12, total=exVat+vat;
+  $('#q-subtotal').textContent=peso(exVat); $('#q-vat').textContent=peso(vat); $('#q-total').textContent=peso(total);
+}
+calcEls.forEach(id=>{const el=$('#'+id);if(el){el.addEventListener('input',calc);el.addEventListener('change',calc);}});
+calc();
+function openCalc(){$('#calc-wrap').style.display='block';$('#calc-toggle-btn').textContent='Calculator open ↓';setTimeout(()=>$('#calc-wrap').scrollIntoView({behavior:'smooth'}),50);calc();}
+$('#calc-toggle-btn')?.addEventListener('click',openCalc);
+$('#open-calc-tier')?.addEventListener('click',openCalc);
+
+/* ============================ CREATE WIZARD ============================ */
+const STEPS=['setup','build','target','review'];
+function goStep(step){
+  $$('.wstep').forEach(w=>w.style.display='none');
+  const el=$('#step-'+step); if(el)el.style.display='block';
+  const ci=STEPS.indexOf(step);
+  $$('#create-stepper .st').forEach(s=>{
+    const i=STEPS.indexOf(s.dataset.step);
+    s.classList.toggle('cur',i===ci); s.classList.toggle('done',i<ci);
+  });
+  window.scrollTo(0,0);
+}
+document.addEventListener('click',e=>{
+  const g=e.target.closest('[data-goto]'); if(g)goStep(g.dataset.goto);
+  const st=e.target.closest('#create-stepper .st'); if(st)goStep(st.dataset.step);
+});
+$('#save-draft-btn')?.addEventListener('click',()=>{
+  if(!authed){ pendingRoute='dashboard'; toast('Sign in to save your draft'); showView('register'); return; }
+  toast('Draft saved — find it on your dashboard'); setTimeout(()=>showView('dashboard'),700);
+});
+$('#preview-btn')?.addEventListener('click',()=>toast('Opening respondent preview…'));
+
+/* ============================ TARGETING ============================ */
+function updateTargeting(){
+  const customOn=$$('#step-target .chip.custom.on').length>0;
+  const base=149000, surcharge=base*0.30;
+  $('#surcharge-banner').style.display=customOn?'flex':'none';
+  $('#surcharge-line').style.display=customOn?'flex':'none';
+  $('#review-surcharge').style.display=customOn?'flex':'none';
+  if($('#co-surcharge'))$('#co-surcharge').style.display=customOn?'flex':'none';
+  const total=customOn?base+surcharge:base;
+  $('#target-total').textContent=peso(total);
+  $('#review-total').textContent=peso(total);
+  $('#co-total').textContent=peso(total); $('#pay-amt').textContent=peso(total);
+  baseTotal=total; applyVoucherState();
+}
+document.addEventListener('click',e=>{
+  const chip=e.target.closest('.chip'); if(chip&&chip.closest('#step-target')){chip.classList.toggle('on');updateTargeting();}
+});
+
+/* ============================ BUILDER bits ============================ */
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-toggle]'); if(t)t.classList.toggle('on');
+  const q=e.target.closest('.qcard'); if(q){$$('.qcard').forEach(c=>c.classList.remove('sel'));q.classList.add('sel');}
+  const p=e.target.closest('.palette-item'); if(p)toast('Element added to your survey');
+  const sq=e.target.closest('.seq-item'); if(sq){$$('.seq-item').forEach(s=>s.classList.remove('on'));sq.classList.add('on');}
+});
+
+/* ============================ DASHBOARD FILTER ============================ */
+$('#dash-seg')?.addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b)return;
+  $$('#dash-seg button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+  const f=b.dataset.filter;
+  $$('#camp-list .crow').forEach(r=>r.style.display=(f==='all'||r.dataset.status===f)?'grid':'none');
+});
+
+/* ============================ CHECKOUT ============================ */
+let baseTotal=149000, voucherApplied=false;
+$('#pay-methods')?.addEventListener('click',e=>{
+  const m=e.target.closest('.pay-method'); if(!m)return;
+  $$('.pay-method').forEach(x=>x.classList.remove('on')); m.classList.add('on');
+  $('#card-fields').style.display=m.querySelector('.pm-d b').textContent.includes('card')?'block':'none';
+});
+function applyVoucherState(){
+  if(voucherApplied){
+    const disc=baseTotal*0.20, tot=baseTotal-disc;
+    $('#co-voucher').style.display='flex'; $('#co-disc').textContent='−'+peso(disc);
+    $('#co-total').textContent=peso(tot); $('#pay-amt').textContent=peso(tot);
+  }else{
+    $('#co-voucher').style.display='none';
+    $('#co-total').textContent=peso(baseTotal); $('#pay-amt').textContent=peso(baseTotal);
+  }
+}
+$('#apply-voucher')?.addEventListener('click',()=>{
+  const v=$('#voucher-input').value.trim();
+  if(!v){$('#voucher-msg').innerHTML='<span class="tiny" style="color:var(--danger)">Enter a code.</span>';return;}
+  voucherApplied=true; applyVoucherState();
+  $('#voucher-msg').innerHTML='<span class="tag green">✓ '+v+' applied — 20% off (3 of 5 uses left)</span>';
+  toast('Voucher applied');
+});
+$('#pay-btn')?.addEventListener('click',()=>{
+  modal('<div class="mic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg></div><h3>You\'re live! 🎉</h3><p class="muted" style="margin-bottom:1.4rem">Payment confirmed. Fieldwork has started — we\'ll begin sending your survey to matching respondents right away.</p><button class="btn btn-primary btn-block btn-lg" id="modal-go">Track it live</button>');
+  $('#modal-go').addEventListener('click',()=>{closeModal();showView('campaign');});
+});
+
+/* ============================ LIVE TRACKING ANIMATION ============================ */
+let liveDone=false;
+function animateLive(){
+  const ring=$('#big-ring'); if(!ring)return;
+  ring.style.setProperty('--p',68);
+  const target=342, dur=1300, t0=performance.now();
+  (function step(t){
+    const k=Math.min((t-t0)/dur,1), e=1-Math.pow(1-k,3);
+    $('#ring-count').textContent=Math.round(target*e);
+    $('#ring-pct').textContent=Math.round(68*e)+'%';
+    if(k<1)requestAnimationFrame(step);
+  })(t0);
+  if(liveDone)return; liveDone=true;
+  // simulate a live completion landing every few seconds
+  const names=[['RT','R. Tan · Female, 23','Iloilo City'],['BP','B. Padilla · Male, 20','Taguig, NCR'],['GV','G. Villanueva · Female, 25','Cagayan de Oro']];
+  let i=0;
+  setInterval(()=>{
+    const feed=$('#live-feed'); if(!feed||!document.body.classList.contains('in-app'))return;
+    const n=names[i%names.length]; i++;
+    const el=document.createElement('div'); el.className='fitem'; el.style.animation='rise .5s';
+    el.innerHTML='<span class="fav">'+n[0]+'</span><div class="ft"><b>'+n[1].split(' · ')[0]+'</b> · '+n[1].split(' · ')[1]+'<div class="fmeta">'+n[2]+'</div></div><span class="fmeta">just now</span>';
+    feed.prepend(el); while(feed.children.length>5)feed.lastChild.remove();
+  },4500);
+}
+$('#pause-btn')?.addEventListener('click',function(){
+  const on=this.textContent.includes('Pause');
+  this.innerHTML=on?'<svg viewBox="0 0 24 24" width="15" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg> Resume':'<svg viewBox="0 0 24 24" width="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg> Pause';
+  toast(on?'Fieldwork paused':'Fieldwork resumed');
+});
+
+/* ============================ INSIGHTS ============================ */
+$('#insight-tabs')?.addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b)return;
+  $$('#insight-tabs button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+  $$('.tabpane').forEach(p=>p.classList.remove('on')); $('#pane-'+b.dataset.tab).classList.add('on');
+});
+$('#dl-ppt')?.addEventListener('click',()=>toast('Preparing your .pptx deck…'));
+$('#dl-xlsx')?.addEventListener('click',()=>toast('Preparing your cross-tab .xlsx…'));
+
+const ANSWERS={
+  'What drove recall among 25–34s?':'Among 25–34s (n=260), recall hit <b>81%</b> — the strongest of any age band. The biggest driver was the <b>music hook</b> (mentioned by 47% vs 43% overall), followed by the festive visuals. NCR 25–34s over-indexed further at 88%.<chart>88,72,55,40</chart>',
+  'Where was recall weakest?':'Recall was lowest in <b>Mindanao (69%)</b> and among <b>18–24s outside NCR (64%)</b>. The drop correlates with lower reported ad exposure on TV — these segments skewed toward social-only media diets.<chart>69,64,58,44</chart>',
+  'Summarise the top 3 findings.':'<b>1.</b> 76% recalled the holiday ad unaided — well above the 60% category norm.<br><b>2.</b> Music was the #1 memory hook (43%), ahead of the storyline (31%).<br><b>3.</b> Intent to repurchase reached 61%, peaking with 25–34s (68%).',
+  'Any surprising verbatims?':'A recurring, unexpected theme: respondents tied the jingle to <i>"family noche buena"</i> moments rather than the product itself. Sample verbatim: <i>"Pamilya agad pumapasok sa isip ko"</i> — suggesting the emotional hook outran brand linkage. Worth tightening branding in the next cut.'
+};
+function aiReply(q){
+  const log=$('#chat-log');
+  const u=document.createElement('div'); u.className='msg user'; u.textContent=q; log.appendChild(u);
+  log.scrollTop=log.scrollHeight;
+  const typing=document.createElement('div'); typing.className='msg ai'; typing.textContent='Analysing 500 responses…'; log.appendChild(typing); log.scrollTop=log.scrollHeight;
+  setTimeout(()=>{
+    let ans=ANSWERS[q]||'Based on this study\'s 500 responses, that breaks down fairly evenly — try one of the suggested questions for a sharper cut, or ask about a specific segment.';
+    let chart='';
+    const m=ans.match(/<chart>([\d,]+)<\/chart>/);
+    if(m){ans=ans.replace(m[0],'');chart='<div class="mini-chart">'+m[1].split(',').map(h=>'<i style="height:'+h+'%"></i>').join('')+'</div>';}
+    typing.innerHTML=ans+chart; log.scrollTop=log.scrollHeight;
+  },650);
+}
+$('#chat-send')?.addEventListener('click',()=>{const v=$('#chat-input').value.trim();if(v){aiReply(v);$('#chat-input').value='';}});
+$('#chat-input')?.addEventListener('keydown',e=>{if(e.key==='Enter'){const v=e.target.value.trim();if(v){aiReply(v);e.target.value='';}}});
+$('#suggest')?.addEventListener('click',e=>{const s=e.target.closest('.sg');if(s)aiReply(s.dataset.q);});
+
+/* generic auth-switch buttons already route via data-route */
+</script>
+</body>
+</html>
