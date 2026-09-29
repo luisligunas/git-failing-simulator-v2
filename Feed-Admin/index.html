@@ -1,0 +1,1205 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hustle Feed — Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+<style>
+:root{
+  --brand-green:#147F67; --interface-green:#27BF9D; --accent-interface-green:#1AA888; --light-green:#d4f2eb;
+  --dark:#472657; --darker:#331840; --darkest:#230731;
+  --black:#202020; --gray-2:#776F69; --gray-3:#B5AFA8; --gray-5:#E3DCD6; --gray-6:#F4F0EA; --gray-7:#FAF8F6;
+  --danger:#FF003D; --success:#00D872; --light-yellow:#FFC526; --dark-yellow:#BC9C22;
+  --gold:#FCE49A; --mint:#CFEBE0; --peri:#A8BFF0; --peri-ink:#1A2A5C;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--gray-7);color:var(--black);
+     font-family:'Hanken Grotesk',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1580px;margin:0 auto;padding:34px 30px 70px}
+.masthead h1{margin:0;font-size:2rem;font-weight:800;letter-spacing:-.02em}
+.masthead p{margin:9px 0 0;font-size:1rem;line-height:1.55;color:var(--gray-2);max-width:820px}
+.rule{height:1px;background:var(--gray-5);margin:30px 0 26px}
+h2.sec{margin:0 0 6px;font-size:1.5rem;font-weight:800;letter-spacing:-.02em}
+p.sec{margin:0 0 20px;font-size:.9375rem;line-height:1.55;color:var(--gray-2);max-width:900px}
+h3.sub{margin:28px 0 13px;font-size:.75rem;font-weight:700;letter-spacing:.14em;
+       text-transform:uppercase;color:var(--gray-2)}
+
+/* ---------- app chrome ---------- */
+.app{border:1px solid var(--gray-5);border-radius:12px;overflow:hidden;background:#fff;
+     box-shadow:0 2px 14px rgba(35,7,49,.07);display:grid;grid-template-columns:250px 1fr;
+     grid-template-rows:60px 1fr;grid-template-areas:'a top' 'a main'}
+.app .side{grid-area:a;background:var(--dark);padding:14px 12px;display:flex;flex-direction:column;gap:8px}
+.brand{display:flex;align-items:center;gap:9px;color:#fff;font-weight:800;font-size:1.0625rem;
+       letter-spacing:-.01em;padding:4px 6px 14px}
+.sbi{display:flex;align-items:center;gap:11px;background:var(--darker);color:#fff;height:44px;
+     padding:8px 14px;border-radius:8px;font-size:.875rem;font-weight:600;text-decoration:none}
+.sbi.on{background:var(--brand-green)}
+.sbi svg{flex-shrink:0;opacity:.9}
+.sbi.ghost{background:transparent;color:#C6B4D2}
+.lms{padding:16px 6px 7px}
+.lms p{margin:0;font-size:.75rem;font-weight:700;letter-spacing:.11em;color:#B49CC4}
+.pal{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--darker);
+     color:#fff;height:42px;padding:8px 12px 8px 14px;border-radius:8px;font-size:.875rem;
+     font-weight:600;text-decoration:none;margin-bottom:6px;cursor:grab}
+.pal.on{background:var(--brand-green)}
+.pal .add{width:22px;height:22px;border-radius:6px;background:rgba(255,255,255,.14);display:flex;
+          align-items:center;justify-content:center;font-size:1rem;font-weight:700;line-height:1;flex-shrink:0}
+.app .top{grid-area:top;border-bottom:1px solid var(--gray-5);display:flex;align-items:center;
+          justify-content:space-between;padding:0 22px;background:#fff}
+.crumb{font-size:.875rem;color:var(--gray-2)}
+.crumb b{color:var(--black);font-weight:700}
+.app .main{grid-area:main;padding:22px;overflow:hidden;background:var(--gray-7)}
+.app h1.pg{margin:0 0 4px;font-size:1.3125rem;line-height:1.3;font-weight:700}
+.app .pgsub{font-size:.875rem;line-height:1.4;color:var(--gray-2);margin-bottom:18px;font-weight:400}
+.app.notop{grid-template-rows:1fr;grid-template-areas:'a main'}
+
+/* ---------- controls ---------- */
+.btn{display:inline-flex;align-items:center;gap:8px;height:48px;padding:8px 16px;border:1px solid transparent;
+     border-radius:44px;background:var(--brand-green);color:#fff;font-family:inherit;font-size:1rem;
+     font-weight:700;cursor:pointer;text-decoration:none;white-space:nowrap}
+.btn.secondary{background:#fff;border-color:currentColor;color:var(--brand-green)}
+.btn.tertiary{background:transparent;border-color:var(--gray-5);color:var(--black)}
+.btn svg{flex-shrink:0}
+
+.btn.sm{height:36px;padding:8px 14px;font-size:.875rem}
+.btn.xs{height:40px;width:40px;flex-shrink:0;padding:0;justify-content:center;border-radius:44px}
+.rowact{display:flex;align-items:center;justify-content:flex-end;gap:4px}
+.rowact a{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--gray-2);text-decoration:none;border:0;background:transparent}
+.rowact a:hover{background:var(--gray-6)}
+.rowbtn{width:32px;height:32px;border-radius:50%;border:0;background:transparent;color:var(--gray-3);cursor:pointer;flex-shrink:0}
+.rowbtn:hover{background:var(--gray-6)}
+.rowbtn[disabled]{opacity:.3;cursor:not-allowed}
+.rowact a.fg-danger{color:var(--danger)}
+.topacts{background:#fff;padding:16px;border-bottom:1px solid var(--gray-5)}
+.searchbar{display:grid;grid-template-columns:1fr min-content;align-items:center;width:320px;flex-shrink:0}
+.searchbar button{margin-left:8px}
+.tableacts{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.sorter{display:flex;align-items:center;gap:9px;font-size:.875rem;color:var(--gray-2)}
+.label-s{font-size:.875rem;color:var(--gray-2)}
+.filter-item{display:flex;align-items:center;gap:8px}
+.btn-toggle{display:inline-flex;border:1px solid var(--gray-5);border-radius:44px;overflow:hidden;background:#fff}
+.btn-toggle button{border:0;border-right:1px solid var(--gray-5);background:#fff;font-family:inherit;
+                   font-size:.875rem;font-weight:700;color:var(--gray-2);padding:9px 16px;cursor:pointer;border-radius:0}
+.btn-toggle button:last-child{border-right:0}
+.btn-toggle button.on{background:var(--accent-interface-green);color:#fff}
+.inp.error{border-color:var(--danger);background:#FFF5F7}
+.fg-danger{color:var(--danger);font-size:.8125rem;margin-top:5px}
+.thumb-err{border:2px solid var(--danger);border-radius:8px}
+.empty{padding:54px 24px;text-align:center}
+.empty h4{margin:0 0 6px;font-size:1.3125rem;font-weight:700}
+.empty p{margin:0 0 18px;font-size:.875rem;color:var(--gray-2)}
+.no-border{border:0;background:transparent;font-family:inherit;font-size:.875rem;font-weight:700;
+           color:var(--brand-green);cursor:pointer;padding:0 2px}
+.pill{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:3px 10px;
+      font-size:.6875rem;font-weight:700;letter-spacing:.02em;white-space:nowrap}
+.pill .dot{width:6px;height:6px;border-radius:999px}
+.p-live{background:var(--light-green);color:#0B4738}
+.p-sched{background:#EDE7F3;color:#4A2C5C}
+.p-inactive{background:var(--gray-6);color:var(--gray-2)}
+.p-ended{background:var(--gray-6);color:var(--gray-3)}
+.tag{display:inline-block;border-radius:6px;padding:2px 8px;font-size:.6875rem;font-weight:700;
+     background:var(--gray-6);color:var(--gray-2);white-space:nowrap}
+.fld{display:block;font-size:.8125rem;font-weight:700;margin-bottom:6px;color:var(--black)}
+.inp{width:100%;height:40px;border:1px solid var(--gray-5);border-radius:8px;background:var(--gray-7);
+     padding:8px 12px;font-family:inherit;font-size:1rem;color:var(--black)}
+.inp.ta{height:auto;padding:10px 12px;line-height:1.45}
+.hint{font-size:.75rem;color:var(--gray-3);margin-top:5px;line-height:1.4}
+select.inp{appearance:none;-webkit-appearance:none;padding-right:36px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23776F69' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 13px center;background-size:13px}
+.req{color:var(--danger);font-weight:800}
+.card{background:#fff;border:1px solid transparent;border-radius:8px;box-shadow:0 6px 12px 0 #00000008}
+.card.focused{border-color:var(--interface-green)}
+.cardwrap{display:grid;grid-template-columns:1fr minmax(min-content,300px);gap:16px;max-width:1000px;align-items:start}
+@media(max-width:1180px){.cardwrap{grid-template-columns:1fr}}
+@media(max-width:1240px){.wrap [style*="repeat(4,minmax"]{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+.stack{display:flex;flex-direction:column;gap:16px;min-width:0}
+.ch{font-size:.75rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--gray-2);margin:0 0 14px}
+.card .hd{padding:20px 28px 0;font-size:.75rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+          color:var(--gray-2);display:flex;align-items:center;justify-content:space-between}
+.card .bd{padding:14px 28px 24px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}
+.sw{display:inline-flex;align-items:center;gap:8px;font-size:.8125rem}
+.cb{display:inline-flex;align-items:center;gap:9px;font-size:1rem;cursor:pointer}
+.cb s{width:19px;height:19px;border-radius:5px;border:1.5px solid var(--gray-3);flex-shrink:0;text-decoration:none;
+      display:flex;align-items:center;justify-content:center}
+.cb.on s{background:var(--brand-green);border-color:var(--brand-green)}
+.cb.on s::after{content:"";width:10px;height:5px;border-left:2px solid #fff;border-bottom:2px solid #fff;
+                transform:rotate(-45deg);margin-top:-2px}
+.sw i{width:34px;height:20px;border-radius:999px;background:var(--gray-5);position:relative;flex-shrink:0}
+.sw i::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:999px;background:#fff}
+.sw.on i{background:var(--brand-green)}
+.sw.on i::after{left:16px}
+.clr{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--gray-5);border-radius:8px;
+     height:38px;padding:0 10px;font-size:.8125rem;font-family:inherit;background:#fff}
+.clr b{width:18px;height:18px;border-radius:5px;border:1px solid rgba(0,0,0,.12);flex-shrink:0}
+.clr.locked{background:var(--gray-6);color:var(--gray-3);cursor:not-allowed}
+.swgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:6px}
+@media(max-width:1100px){.swgrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.swgrid .cl{font-size:.75rem;font-weight:700;color:var(--gray-2);margin-bottom:4px;display:block}
+.swgrid .clr{width:100%;justify-content:flex-start;font-size:.75rem;height:34px}
+.radio{display:flex;align-items:center;gap:9px;padding:10px 12px;border:1px solid var(--gray-5);
+       border-radius:8px;font-size:.875rem;cursor:pointer;background:#fff}
+.radio.on{border-color:var(--brand-green);background:#F2FAF7;box-shadow:inset 0 0 0 1px var(--brand-green)}
+.radio s{width:16px;height:16px;border-radius:999px;border:1.5px solid var(--gray-3);flex-shrink:0;
+         display:flex;align-items:center;justify-content:center}
+.radio.on s{border-color:var(--brand-green)}
+.radio.on s::after{content:'';width:8px;height:8px;border-radius:999px;background:var(--brand-green)}
+
+/* ---------- data table ---------- */
+table.dt{width:100%;border-collapse:collapse;background:#fff}
+table.dt th{text-align:left;font-size:.6875rem;font-weight:800;letter-spacing:.09em;text-transform:uppercase;
+            color:var(--gray-3);padding:11px 16px;border-bottom:1px solid var(--gray-5);white-space:nowrap}
+table.dt td{padding:12px 16px;border-bottom:1px solid var(--gray-6);font-size:.875rem;vertical-align:middle}
+table.dt tr:last-child td{border-bottom:0}
+.drag{color:var(--gray-3);cursor:grab;font-size:1rem;line-height:1}
+.ttl{font-weight:700}
+.sub{font-size:.75rem;color:var(--gray-3);margin-top:2px}
+
+/* ---------- phone preview: card CSS lifted from the Feed mockup ---------- */
+.ph-scale{width:300px;height:430px;flex-shrink:0;overflow:hidden;background:#F7F5F2;
+          border:9px solid #1C1C1E;border-radius:32px;box-shadow:0 10px 28px rgba(35,7,49,.16)}
+.ph-scale > .phone{transform:scale(.7231);transform-origin:top left}
+.phone{--card:#FFFFFF;--mute:#8E8E8E;--body:#2A2A2A;--line:#F0F0F0;--lime:#E7F3A3;--green:#147F67}
+.phone .c{background:var(--card);border-radius:18px;overflow:hidden;display:block;text-decoration:none;color:inherit}
+.phone .c img{display:block;width:100%;object-fit:cover}
+.phone .byline{padding:14px 16px 11px;display:flex;align-items:center;gap:11px}
+.phone .av{width:40px;height:40px;border-radius:999px;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden}
+.phone .av.brand{background:var(--green)}
+.phone .grow{flex-grow:1;min-width:0}
+.phone .who{font-size:14.5px;font-weight:800;line-height:1.25}
+.phone .who #pvPill{display:inline-block;vertical-align:middle;margin-left:6px;position:relative;top:-1px}
+.phone .when{font-size:12px;color:var(--mute)}
+.phone .body{padding:0 16px 12px;font-size:14.5px;line-height:1.45;color:var(--body)}
+.phone .foot{padding:2px 16px 6px;display:flex;align-items:center;border-top:1px solid var(--line)}
+.phone .heart{display:inline-flex;align-items:center;gap:9px;height:44px;padding:0;background:transparent;border:0;cursor:pointer}
+.phone .heart span{font-family:inherit;font-size:14.5px;font-weight:700;color:#3A3A3A}
+/* ---------- phone shell ---------- */
+.phone{width:390px;background:#F7F5F2;flex-shrink:0}
+.phone .ph-body{min-height:0}
+.phone .ph-top{padding:26px 22px 14px;background:#fff}
+.phone .ph-top h4{margin:0;font-size:34px;font-weight:800;letter-spacing:-.025em}
+.phone .ph-body{padding:0 16px 14px;display:flex;flex-direction:column;gap:14px;background:#F7F5F2}
+.c{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.c img{display:block;width:100%;object-fit:cover}
+.note{background:var(--light-green);border-radius:9px;padding:11px 13px;font-size:.8125rem;
+      line-height:1.5;color:#0B4738}
+.warn{background:#FFF4E5;border-radius:9px;padding:11px 13px;font-size:.8125rem;line-height:1.5;color:#7A4A00}
+.cap{margin-top:13px;font-size:.9375rem;font-weight:800}
+.cap span{display:block;margin-top:4px;font-size:.8125rem;font-weight:400;color:var(--gray-2);line-height:1.5}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+@media(max-width:1100px){.two{grid-template-columns:1fr}}
+code{background:var(--gray-6);border-radius:4px;padding:1px 5px;font-size:.8125em}
+.rg{display:flex;flex-wrap:wrap;gap:18px;align-items:center}
+.rg label{display:inline-flex;align-items:center;gap:7px;font-size:1rem;cursor:pointer}
+.rg s{width:17px;height:17px;border-radius:999px;border:1.5px solid var(--gray-3);flex-shrink:0;
+      display:flex;align-items:center;justify-content:center;text-decoration:none}
+.rg label.on s{border-color:var(--brand-green)}
+.rg label.on s::after{content:"";width:9px;height:9px;border-radius:999px;background:var(--brand-green)}
+.modalback{position:relative;background:rgba(35,7,49,.45);display:flex;align-items:center;
+           justify-content:center;padding:26px;min-height:560px}
+.modalbox{width:720px;max-width:100%;background:#fff;border-radius:12px;box-shadow:0 18px 50px rgba(0,0,0,.28);
+          display:flex;flex-direction:column;overflow:hidden}
+.modalbox header{padding:20px 24px 14px;position:relative}
+.modalbox header h2{margin:0;font-size:1.3125rem;font-weight:800;letter-spacing:-.01em}
+.modalbox .close{position:absolute;top:18px;right:20px;border:0;background:transparent;color:var(--gray-3);
+                 font-size:1.3rem;line-height:1;cursor:pointer}
+.modalbox main{padding:0 24px 8px;overflow:auto}
+.action-wrapper{display:flex;justify-content:flex-end;gap:10px;padding:16px 24px 20px;border-top:1px solid var(--gray-5)}
+.condition-box{border:1px solid var(--gray-5);border-radius:10px;padding:14px;background:var(--gray-7)}
+.condition-box + .condition-box{margin-top:12px}
+.cba{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;font-size:.875rem;color:var(--gray-2)}
+.toggle-logic{display:inline-flex;border:1px solid var(--gray-5);border-radius:44px;overflow:hidden;background:#fff}
+.toggle-logic span{padding:5px 14px;font-size:.75rem;font-weight:700;letter-spacing:.04em;color:var(--gray-3)}
+.toggle-logic span.on{background:var(--brand-green);color:#fff}
+.rule-item{display:grid;grid-template-columns:1.25fr .9fr 1.25fr 34px;gap:8px;align-items:center;
+           background:#fff;border:1px solid var(--gray-5);border-radius:8px;padding:9px;margin-bottom:9px}
+.rule-item .inp{height:36px;font-size:.875rem;background:#fff}
+.trash{width:32px;height:32px;border-radius:50%;border:0;background:transparent;color:var(--gray-3);cursor:pointer}
+.nest{border-style:dashed}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="masthead">
+    <h1>Hustle Feed: the admin side</h1>
+    <p>Three screens in the Enterprise shell: the ordered list of everything in the Feed, the editor that builds one item, and the targeting modal it opens. Only the first two are new. The targeting modal is the Banner editor&rsquo;s, reused as it stands. Colours, type and chrome are the app&rsquo;s own: Hanken Grotesk, the <code>--dark</code> sidebar, <code>--brand-green</code> actions. It should read as a screen the team already has rather than a new design language. The companion <a href="../Feed/" style="color:var(--brand-green);font-weight:700">Feed mockup</a> specifies what each field does on the phone.</p>
+  </div>
+  <div class="rule"></div>
+
+  <h2 class="sec">1 &middot; Feed items</h2>
+  <p class="sec">Everything in the Feed, in the order hustlers see it. There is no sort control: the order on this screen is the order hustlers get, so sorting it by anything else would show a list you cannot drag. Reordering borrows from the run list: drag, move up, move down and <strong>anchor</strong> on every row. There is no edit-order mode, because ordering is what this screen is for. An anchored item keeps its place above newly created ones instead of being pushed down, which is what a standing Notice or a season banner needs. The order here is the order the server sends, and the app never re-sorts. Status is read, never set. <em>Live</em> means the schedule has started, no end has passed and Is Active is ticked. Unticking <em>Is Active</em> overrides everything else and pulls an item immediately without touching its dates, so a cancelled raffle never needs its schedule rewritten to make it disappear.</p>
+  <div class="app notop">
+        <div class="side">
+          <a class="sbi ghost" href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>Back Home</a>
+        </div>
+        <div class="main">
+          <h1 class="pg" style="margin:4px 0 16px">Feed</h1>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+            <button class="btn sm" style="margin-left:auto">New item</button>
+          </div>
+          <div class="card" style="overflow:hidden">
+            <div class="topacts">
+              <div class="tableacts">
+              <form class="searchbar" onsubmit="return false">
+                <input class="inp" type="search" placeholder="Search Feed items">
+                <button class="btn xs" aria-label="Search"><i class="fa-solid fa-magnifying-glass"></i></button>
+              </form>
+                <div class="btn-toggle">
+                  <button class="on">All</button><button>Live</button><button>Scheduled</button><button>Inactive</button><button>Ended</button>
+                </div>
+              </div>
+            </div>
+            <table class="dt">
+              <thead><tr><th></th><th>#</th><th>Item</th><th>Status</th><th>Schedule</th><th></th></tr></thead>
+              <tbody>
+          <tr><td style="width:26px"><span class="drag">&#8942;&#8942;</span></td><td style="width:30px;color:var(--gray-3);font-size:.8125rem">1</td><td><div class="ttl">₱10,000 raffle this September</div><div class="sub">Feature card · Behind</div></td><td><span class="pill p-live"><span class="dot" style="background:#00A85A"></span>Live</span></td><td style="color:var(--gray-2);font-size:.8125rem;white-space:nowrap">Ends 30 September 2026, 11:59 PM</td><td><div class="rowact"><a href="#" class="fg-danger" aria-label="Un-anchor" title="Showing on top of newly created items"><i class="fa-solid fa-anchor-lock"></i></a></div></td></tr>
+          <tr><td style="width:26px"><span class="drag">&#8942;&#8942;</span></td><td style="width:30px;color:var(--gray-3);font-size:.8125rem">2</td><td><div class="ttl">No cash out this Sunday, 1–4 AM</div><div class="sub">Notice</div></td><td><span class="pill p-live"><span class="dot" style="background:#00A85A"></span>Live</span></td><td style="color:var(--gray-2);font-size:.8125rem;white-space:nowrap">Ends 29 September 2026, 4:00 AM</td><td><div class="rowact"><a href="#" class="fg-danger" aria-label="Un-anchor" title="Showing on top of newly created items"><i class="fa-solid fa-anchor-lock"></i></a></div></td></tr>
+          <tr><td style="width:26px"><span class="drag">&#8942;&#8942;</span></td><td style="width:30px;color:var(--gray-3);font-size:.8125rem">3</td><td><div class="ttl">More ways to earn</div><div class="sub">Collection · Horizontal · 4 items</div></td><td><span class="pill p-live"><span class="dot" style="background:#00A85A"></span>Live</span></td><td style="color:var(--gray-2);font-size:.8125rem;white-space:nowrap">No end date</td><td><div class="rowact"><a href="#" aria-label="Anchor" title="When enabled, this item will show on top of newly created items"><i class="fa-solid fa-anchor"></i></a></div></td></tr>
+          <tr><td style="width:26px"><span class="drag">&#8942;&#8942;</span></td><td style="width:30px;color:var(--gray-3);font-size:.8125rem">4</td><td><div class="ttl">This month’s MVP Hustlers</div><div class="sub">Post · Ranked list · 15 rows</div></td><td><span class="pill p-sched"><span class="dot" style="background:#7A4A9C"></span>Scheduled</span></td><td style="color:var(--gray-2);font-size:.8125rem;white-space:nowrap">Starts 1 October 2026, 9:00 AM</td><td><div class="rowact"><a href="#" aria-label="Anchor" title="When enabled, this item will show on top of newly created items"><i class="fa-solid fa-anchor"></i></a></div></td></tr>
+          <tr><td style="width:26px"><span class="drag">&#8942;&#8942;</span></td><td style="width:30px;color:var(--gray-3);font-size:.8125rem">5</td><td><div class="ttl">Hustle Season 3 starts today</div><div class="sub">Post · Photos · 1 image</div></td><td><span class="pill p-live"><span class="dot" style="background:#00A85A"></span>Live</span></td><td style="color:var(--gray-2);font-size:.8125rem;white-space:nowrap">No end date</td><td><div class="rowact"><a href="#" aria-label="Anchor" title="When enabled, this item will show on top of newly created items"><i class="fa-solid fa-anchor"></i></a></div></td></tr>
+          <tr><td style="width:26px"><span class="drag">&#8942;&#8942;</span></td><td style="width:30px;color:var(--gray-3);font-size:.8125rem">6</td><td><div class="ttl">Double points in Cebu</div><div class="sub">Feature card · Beside</div></td><td><span class="pill p-inactive"><span class="dot" style="background:#B5AFA8"></span>Inactive</span></td><td style="color:var(--gray-2);font-size:.8125rem;white-space:nowrap">Ends 4 October 2026, 11:59 PM</td><td><div class="rowact"><a href="#" aria-label="Anchor" title="When enabled, this item will show on top of newly created items"><i class="fa-solid fa-anchor"></i></a></div></td></tr>
+          <tr><td style="width:26px"><span class="drag">&#8942;&#8942;</span></td><td style="width:30px;color:var(--gray-3);font-size:.8125rem">7</td><td><div class="ttl">Thank you to the 1,200 hustlers</div><div class="sub">Post · Photos · 5 images</div></td><td><span class="pill p-live"><span class="dot" style="background:#00A85A"></span>Live</span></td><td style="color:var(--gray-2);font-size:.8125rem;white-space:nowrap">No end date</td><td><div class="rowact"><a href="#" aria-label="Anchor" title="When enabled, this item will show on top of newly created items"><i class="fa-solid fa-anchor"></i></a></div></td></tr>
+          <tr><td style="width:26px"><span class="drag">&#8942;&#8942;</span></td><td style="width:30px;color:var(--gray-3);font-size:.8125rem">8</td><td><div class="ttl">Which missions do you prefer?</div><div class="sub">Post · Poll · 2 options</div></td><td><span class="pill p-live"><span class="dot" style="background:#00A85A"></span>Live</span></td><td style="color:var(--gray-2);font-size:.8125rem;white-space:nowrap">Closes 4 October 2026, 11:59 PM</td><td><div class="rowact"><a href="#" aria-label="Anchor" title="When enabled, this item will show on top of newly created items"><i class="fa-solid fa-anchor"></i></a></div></td></tr>
+          <tr><td style="width:26px"><span class="drag">&#8942;&#8942;</span></td><td style="width:30px;color:var(--gray-3);font-size:.8125rem">9</td><td><div class="ttl">August draw winners</div><div class="sub">Post · Ranked list · 3 rows</div></td><td><span class="pill p-ended"><span class="dot" style="background:#D6D0CA"></span>Ended</span></td><td style="color:var(--gray-2);font-size:.8125rem;white-space:nowrap">Ended 1 September 2026, 11:59 PM</td><td><div class="rowact"><a href="#" aria-label="Anchor" title="When enabled, this item will show on top of newly created items"><i class="fa-solid fa-anchor"></i></a></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+  </div>
+
+  <div class="rule"></div>
+  <h2 class="sec">2 &middot; The item editor</h2>
+  <p class="sec">One form for all nine elements. The type picker on the left decides which fields exist; the phone on the right renders the real thing as it is typed, so nobody has to imagine what a colour pair will look like. Delivery (schedule, targeting, active) is the same panel whatever the type. Position is not here: ordering belongs to the list, where you can see what an item sits between. Targeting is the Banner editor&rsquo;s own <code>targetingType</code> radio group: <strong>Edit</strong> appears only for Custom Targeting. Both dates are optional and clearable: no Starts means it goes live on publish, no Ends means it runs until removed. Unticking <strong>Is Active</strong> hides an item straight away and leaves its dates untouched. Neither can be in the past, and Ends must be after Starts. Note the preview byline reads <strong>1 Oct 2026</strong> rather than today, because the timestamp counts from the schedule start.</p>
+  <div class="app notop">
+        <div class="side">
+          <a class="sbi ghost" href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>Back Home</a>
+        </div>
+        <div class="main" style="overflow:auto">
+          <h1 class="pg">New item</h1>
+          <div class="pgsub">Post &middot; Photos &middot; not yet published</div>
+          <div class="cardwrap">
+            <div class="stack">
+              <div class="card"><div class="hd">Type</div><div class="bd">
+                <div class="grid2" style="gap:8px">
+                  <label class="radio" data-type="Feature card" style="align-items:flex-start;padding:11px 12px"><s style="margin-top:2px"></s><span><b style="font-weight:700">Feature card</b><span style="display:block;font-size:.75rem;color:var(--gray-3);margin-top:2px">Marketing placement.</span></span></label>
+                  <label class="radio" data-type="Notice" style="align-items:flex-start;padding:11px 12px"><s style="margin-top:2px"></s><span><b style="font-weight:700">Notice</b><span style="display:block;font-size:.75rem;color:var(--gray-3);margin-top:2px">A service message.</span></span></label>
+                  <label class="radio" data-type="Collection" style="align-items:flex-start;padding:11px 12px"><s style="margin-top:2px"></s><span><b style="font-weight:700">Collection</b><span style="display:block;font-size:.75rem;color:var(--gray-3);margin-top:2px">Several items, its own item shape.</span></span></label>
+                  <label class="radio on" data-type="Post" style="align-items:flex-start;padding:11px 12px"><s style="margin-top:2px"></s><span><b style="font-weight:700">Post</b><span style="display:block;font-size:.75rem;color:var(--gray-3);margin-top:2px">Byline, copy, one content type, a heart.</span></span></label>
+                </div>
+              </div></div>
+              <div class="card focused" id="cardByline"><div class="hd">Byline</div><div class="bd">
+                <div class="grid2">
+                  <div><label class="fld">Avatar <span class="req">*</span></label>
+                    <select class="inp" id="avatar"><option>Hustle logo</option><option selected>Custom</option></select>
+                    <div id="avatarUpload" style="margin-top:9px"></div>
+                  </div>
+                  <div><label class="fld">Name <span class="req">*</span></label><input class="inp" id="pname" value="Sari-Sari Store Community"></div>
+                </div>
+                <div class="grid2" style="margin-top:16px">
+                  <div><label class="fld">Pill</label><input class="inp" id="pill" value="Community"></div>
+                  <div><label class="fld">Pill style</label>
+                    <select class="inp" id="pillstyle"><option>Official</option><option>Paid</option><option selected>Custom</option></select>
+                    <div class="swgrid" id="pillPickers" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+                      <div><span class="cl">Pill fill</span><span class="clr"><b id="swFill" style="background:#E4E4E4"></b><i id="txFill" class="hx" style="font-style:normal">#E4E4E4</i></span></div>
+                      <div><span class="cl">Pill text</span><span class="clr"><b id="swInk" style="background:#5A5A5A"></b><i id="txInk" class="hx" style="font-style:normal">#5A5A5A</i></span></div>
+                    </div>
+                  </div>
+                </div>
+              </div></div>
+              <div class="card" id="cardContent"><div class="hd">Content</div><div class="bd">
+                <div id="ctypeRow"><label class="fld">Content type</label>
+                  <select class="inp" id="ctype"><option>Text</option><option selected>Photos</option><option>Video</option><option>Poll</option><option>Quote</option><option>Article link</option><option>Ranked list</option></select>
+                </div>
+                <label class="fld" style="margin-top:14px">Message</label>
+                <textarea class="inp ta" id="msg" rows="3">Hustle Season 3 starts today. More missions, faster cash out, and a bigger raffle every week until 30 September.</textarea>
+                <div class="hint">Truncates after 4 lines with a Read more, or 10 lines on a Text post.</div>
+                <div id="ctFields"></div>
+              </div></div>
+              <div class="card"><div class="hd">Delivery</div><div class="bd">
+                <div class="grid2">
+                  <div><label class="fld">Starts</label>
+                    <div style="display:flex;align-items:center;gap:8px;position:relative">
+                      <input class="inp" id="startTxt" readonly placeholder="No start date" value="1 October 2026, 9:00 AM" style="cursor:pointer">
+                      <input type="datetime-local" id="startIso" value="2026-10-01T09:00" style="position:absolute;left:0;bottom:0;width:1px;height:1px;opacity:0;pointer-events:none">
+                      <button class="no-border" id="startClr">Clear</button>
+                    </div>
+                  </div>
+                  <div><label class="fld">Ends</label>
+                    <div style="display:flex;align-items:center;gap:8px;position:relative">
+                      <input class="inp" id="endTxt" readonly placeholder="No end date" value="" style="cursor:pointer">
+                      <input type="datetime-local" id="endIso" value="" style="position:absolute;left:0;bottom:0;width:1px;height:1px;opacity:0;pointer-events:none">
+                      <button class="no-border" id="endClr">Clear</button>
+                    </div>
+                  </div>
+                </div>
+                <div style="margin-top:18px"><label class="fld">Targeting <span class="req">*</span></label>
+                  <div class="rg" id="targeting">
+                    <label data-t="All"><s></s>All</label>
+                    <label data-t="Run"><s></s>Run</label>
+                    <label data-t="Mission"><s></s>Mission</label>
+                    <label class="on" data-t="Custom"><s></s>Custom Targeting</label>
+                  </div>
+                  <div id="tFields" style="margin-top:12px"></div>
+                </div>
+                <div style="margin-top:18px"><label class="cb on" id="active"><s></s>Is Active?</label></div>
+              </div></div>
+              <div style="padding-top:2px">
+                <button class="btn">Create Feed Item</button>
+              </div>
+            </div>
+
+            <div class="card" style="position:sticky;top:0"><div class="hd">Live preview</div>
+              <div class="bd" style="display:flex;justify-content:center;background:var(--gray-7)">
+                <div class="ph-scale"><div class="phone">
+                  <div class="ph-top"><h4>Feed</h4></div>
+                  <div class="ph-body">
+                    <div id="pvSlot"></div>
+                  </div>
+                </div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+  </div>
+
+  <h3 class="sub">Editing a collection item</h3>
+  <p class="sec">Items are edited one at a time in a modal, the way the Target Selection and Hustler List modals already work. Six fields, all of them the item&rsquo;s own. The Collection&rsquo;s orientation decides the image ratio &mdash; 5:3 horizontal, 1:1 vertical &mdash; which means <strong>switching orientation invalidates every existing item image</strong>. That is a real failure, not a warning: the images are the wrong shape and the card cannot be saved until they are replaced.</p>
+  <div style="background:var(--gray-6);border-radius:12px;padding:26px;display:flex;justify-content:center;margin-bottom:24px">
+    <div class="modalbox" style="width:620px">
+      <header><h2>Collection item</h2><button class="close" aria-label="Close">&times;</button></header>
+      <main style="padding:0 24px 18px">
+        <label class="fld">Image <span class="req">*</span></label>
+        <div style="display:flex;gap:10px;align-items:center">
+          <img src="https://picsum.photos/seed/hustle-survey/200/120" alt="" style="width:84px;height:50px;border-radius:6px;object-fit:cover;flex-shrink:0">
+          <button class="btn tertiary sm">Replace</button>
+          <span class="label-s" id="collRatio">5:3</span>
+        </div>
+        <div class="grid2" style="margin-top:16px">
+          <div><label class="fld">Title <span class="req">*</span></label><input class="inp" value="7 new surveys"></div>
+          <div><label class="fld">Meta</label><input class="inp" value="&#8369;40&ndash;120 each" placeholder="Optional"></div>
+        </div>
+        <div class="grid2" style="margin-top:16px">
+          <div><label class="fld">Tag <span class="req">*</span></label><input class="inp" value="Survey"></div>
+          <div><label class="fld">Tag style</label>
+            <select class="inp" id="tagStyle"><option>Article</option><option>Tip</option><option selected>Custom</option></select>
+            <div id="tagSw" style="display:flex;gap:8px;margin-top:9px">
+              <span class="clr"><b style="background:#A8BFF0"></b>#A8BFF0</span>
+              <span class="clr"><b style="background:#1A2A5C"></b>#1A2A5C</span>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:16px"><label class="fld">Destination <span class="req">*</span></label>
+          <input class="inp" value="https://hustle-ph.com/surveys"></div>
+      </main>
+      <div class="action-wrapper"><button class="btn secondary sm">Cancel</button><button class="btn sm">Save</button></div>
+    </div>
+  </div>
+  <div class="rule"></div>
+  <h2 class="sec">3 &middot; Targeting</h2>
+  <p class="sec">Not a new screen. The editor above shows the four targeting states live: All needs no further fields, Run gives a read-only field with a <strong>Choose</strong> button, Mission is typed straight in, and <strong>Custom Targeting</strong> reveals the <strong>Edit</strong> button that opens the modal below. That modal is the one the Banner editor already uses: 720&times;800, nested ALL/ANY boxes, the same thirteen attributes. The Feed passes its value in and reads the result back; nothing about it changes.</p>
+  <div class="app notop">
+        <div class="side">
+          <a class="sbi ghost" href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>Back Home</a>
+        </div>
+        <div class="main" style="padding:0">
+          <div class="modalback">
+            <div class="modalbox">
+              <header><h2>Targeting</h2><button class="close" aria-label="Close">&times;</button></header>
+              <main>
+                <div class="condition-box">
+                  <div class="cba"><div style="display:flex;align-items:center;gap:9px"><span class="toggle-logic"><span class="on">ALL</span><span>ANY</span></span> are satisfied</div><button class="trash" aria-label="Remove all"><i class="fa-solid fa-trash-alt"></i></button></div>
+              <div class="rule-item"><select class="inp"><option>SEC</option><option>Gender</option><option>Sex</option><option>Age</option><option>Personal Monthly Income</option><option>Monthly Household Income</option><option selected>Location</option><option>Hustler Group</option><option>Hustler</option><option>Tagging Data</option><option>Registration Channel</option><option>Registration Date</option><option>Email Address</option></select><select class="inp"><option selected>is</option><option>is not</option><option>is greater than</option><option>is less than</option><option>is after</option><option>is before</option></select><select class="inp"><option selected>Cebu</option></select><button class="trash" aria-label="Remove"><i class="fa-solid fa-trash-alt"></i></button></div>
+              <div class="rule-item"><select class="inp"><option>SEC</option><option>Gender</option><option>Sex</option><option selected>Age</option><option>Personal Monthly Income</option><option>Monthly Household Income</option><option>Location</option><option>Hustler Group</option><option>Hustler</option><option>Tagging Data</option><option>Registration Channel</option><option>Registration Date</option><option>Email Address</option></select><select class="inp"><option>is</option><option>is not</option><option selected>is greater than</option><option>is less than</option><option>is after</option><option>is before</option></select><select class="inp"><option selected>24</option></select><button class="trash" aria-label="Remove"><i class="fa-solid fa-trash-alt"></i></button></div>
+                  <div class="condition-box nest">
+                    <div class="cba"><div style="display:flex;align-items:center;gap:9px"><span class="toggle-logic"><span>ALL</span><span class="on">ANY</span></span> are satisfied</div><button class="trash" aria-label="Remove all"><i class="fa-solid fa-trash-alt"></i></button></div>
+              <div class="rule-item"><select class="inp"><option>SEC</option><option>Gender</option><option>Sex</option><option>Age</option><option>Personal Monthly Income</option><option>Monthly Household Income</option><option>Location</option><option selected>Hustler Group</option><option>Hustler</option><option>Tagging Data</option><option>Registration Channel</option><option>Registration Date</option><option>Email Address</option></select><select class="inp"><option selected>is</option><option>is not</option><option>is greater than</option><option>is less than</option><option>is after</option><option>is before</option></select><select class="inp"><option selected>Sari-Sari Community</option></select><button class="trash" aria-label="Remove"><i class="fa-solid fa-trash-alt"></i></button></div>
+              <div class="rule-item"><select class="inp"><option>SEC</option><option>Gender</option><option>Sex</option><option>Age</option><option>Personal Monthly Income</option><option>Monthly Household Income</option><option>Location</option><option>Hustler Group</option><option>Hustler</option><option>Tagging Data</option><option selected>Registration Channel</option><option>Registration Date</option><option>Email Address</option></select><select class="inp"><option selected>is</option><option>is not</option><option>is greater than</option><option>is less than</option><option>is after</option><option>is before</option></select><select class="inp"><option selected>GLife</option></select><button class="trash" aria-label="Remove"><i class="fa-solid fa-trash-alt"></i></button></div>
+                    <button class="btn tertiary sm">+ Add rule</button>
+                  </div>
+                  <div style="margin-top:12px;display:flex;gap:9px"><button class="btn tertiary sm">+ Add rule</button><button class="btn tertiary sm">+ Add group</button></div>
+                </div>
+              </main>
+              <div class="action-wrapper"><button class="btn secondary sm">Cancel</button><button class="btn sm">Save</button></div>
+            </div>
+          </div>
+        </div>
+  </div>
+
+  <div class="rule"></div>
+  <h2 class="sec">4 &middot; Empty and error states</h2>
+  <p class="sec">The list has three states beyond the populated one, and two of them look empty for different reasons: nothing has been created yet, or the search and status filter have excluded everything. The first offers <strong>New item</strong>, the second offers <strong>Clear filters</strong>, because telling someone to create an item when they have forty of them behind a filter is worse than saying nothing. Field errors use the form&rsquo;s own <code>display-errors</code> output: a red border on the input and the message underneath in <code>fg-danger</code>, which is how the Banner form already reports a missing name or an end date that lands before the start. Card images are the one upload with a required ratio, so a mismatch is rejected and the image has to be replaced &mdash; including the bulk case, where flipping a Collection&rsquo;s orientation leaves every existing item the wrong shape at once. Post photos are never rejected and never warned about: the app crops or fits them on its own.</p>
+  <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px">
+      <div class="card"><div class="hd">List: nothing created yet</div><div class="bd" style="padding:0">
+        <div class="empty">
+          <h4>No feed items yet</h4>
+          <p>Create one to start filling the app&rsquo;s Feed tab.</p>
+          <button class="btn sm">New item</button>
+        </div>
+      </div></div>
+      <div class="card"><div class="hd">List: no matches</div><div class="bd" style="padding:0">
+        <div class="empty">
+          <h4>No items match</h4>
+          <p>Nothing here is Inactive, or your search found nothing.</p>
+          <button class="btn tertiary sm">Clear filters</button>
+        </div>
+      </div></div>
+      <div class="card"><div class="hd">List: failed to load</div><div class="bd" style="padding:0">
+        <div class="empty">
+          <h4>Could not load feed items</h4>
+          <p>Something went wrong fetching the list.</p>
+          <button class="btn sm">Try again</button>
+        </div>
+      </div></div>
+      <div class="card"><div class="hd">Form: validation errors</div><div class="bd" style="padding:0">
+        <div style="padding:18px 20px">
+          <label class="fld">Name <span class="req">*</span></label>
+          <input class="inp error" value="">
+          <p class="fg-danger">The name field is required.</p>
+          <label class="fld" style="margin-top:16px">Ends</label>
+          <input class="inp error" value="28 September 2026, 9:00 AM">
+          <p class="fg-danger">The ends field must be after starts.</p>
+          <label class="fld" style="margin-top:16px">Message</label>
+          <textarea class="inp ta error" rows="2"></textarea>
+          <p class="fg-danger">Add a message or a content type. A post cannot be empty.</p>
+        </div>
+      </div></div>
+      <div class="card"><div class="hd">Image: wrong ratio for the card</div><div class="bd" style="padding:18px 20px">
+        <label class="fld">Image <span class="req">*</span></label>
+        <div style="display:flex;gap:10px;align-items:flex-start">
+          <img class="thumb-err" src="https://picsum.photos/seed/hustle-banner/160/90" alt="" style="width:86px;height:48px;object-fit:cover;flex-shrink:0">
+          <button class="btn tertiary sm">Replace</button>
+        </div>
+        <p class="fg-danger">This image must be 1:1.</p>
+      </div></div>
+      <div class="card"><div class="hd">Collection: orientation changed</div><div class="bd" style="padding:18px 20px">
+        <label class="fld">Orientation</label>
+        <select class="inp error"><option>Horizontal</option><option selected>Vertical</option></select>
+        <p class="fg-danger">Every item image must be 1:1.</p>
+        <div style="margin-top:12px"><button class="btn sm">Review items</button></div>
+      </div></div>
+  </div>
+
+  <div class="rule"></div>
+  <h2 class="sec">What this reuses</h2>
+  <p class="sec">Almost none of this is new surface area. The Banner editor already has Schedule with a start and end, Targeting as All / Run / Mission / Custom, and a redirection field. The Feed editor is the same shape, with a component catalogue in front of it and a live preview beside it.</p>
+  <div class="two">
+    <div class="card"><div class="hd">Already exists</div><div class="bd" style="font-size:.875rem;line-height:1.6;color:var(--gray-2)"><strong style="color:var(--black)">Schedule</strong>: start and end dates, from <code>BannerCreateView</code>.<br><strong style="color:var(--black)">Targeting</strong>: All / Run / Mission / Custom, the same screen, not a copy of it.<br><strong style="color:var(--black)">Hustler groups</strong>: the existing module backs &ldquo;In a hustler group&rdquo;.<br><strong style="color:var(--black)">Destinations</strong>: the run and mission pickers the banner redirect already uses.</div></div>
+    <div class="card"><div class="hd">New for the Feed</div><div class="bd" style="font-size:.875rem;line-height:1.6;color:var(--gray-2)"><strong style="color:var(--black)">Type picker</strong>: nine elements behind one form.<br><strong style="color:var(--black)">Live phone preview</strong>: the only way colour pickers are usable.<br><strong style="color:var(--black)">Ordering</strong>: drag in the list, since banners have no order to keep.<br><strong style="color:var(--black)">Is Active</strong>: pull an item without editing its dates.</div></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  const PILL={Official:['#E4EFEA','#0B4738','Official'],Paid:['#E4E4E4','#5A5A5A','Paid']};
+  const IMG='https://picsum.photos/seed/hustle-season/716/392';
+
+  // ---- content type -> which fields the Content card shows
+  const CT={
+    Text:'',
+    Photos:null,
+    Video:null,
+    Poll:null,
+
+    Quote:null,
+
+    'Article link':null,
+    'Ranked list':null
+  };
+  const PV={
+    Text:'',
+    Photos:null,
+    Video:null,
+
+    Poll:'<div style="padding:0 16px 12px;display:flex;flex-direction:column;gap:8px">'+
+      '<div style="height:40px;border:1.5px solid #DCDCDC;border-radius:10px;display:flex;align-items:center;padding:0 13px;font-size:13.5px;font-weight:700">At home</div>'+
+      '<div style="height:40px;border:1.5px solid #DCDCDC;border-radius:10px;display:flex;align-items:center;padding:0 13px;font-size:13.5px;font-weight:700">On the go</div></div>',
+    Quote:null,
+
+    'Article link':null,
+    'Ranked list':'<div style="padding:0 16px 8px"><div style="font-size:15px;font-weight:800;margin-bottom:2px">This month’s MVP Hustlers</div>'+
+      '<div style="display:flex;align-items:center;gap:11px;padding:12px 0;border-bottom:1px solid #F0F0F0">'+
+      '<span style="background:#F5B800;border-radius:999px;padding:4px 11px;font-size:9.5px;font-weight:800;letter-spacing:.06em;color:#5C4600">1ST</span>'+
+      '<span style="flex-grow:1;font-size:13.5px;font-weight:700">Maria Santos</span>'+
+      '<span style="font-size:16px;font-weight:800">₱10,000</span></div></div>'
+  };
+  const TF={
+    All:'',
+    Run:'<div style="display:flex;gap:8px;align-items:flex-end"><div style="flex:1"><label class="fld">Run</label>'+
+        '<input class="inp" value="QLGP389757" disabled style="background:var(--gray-6);color:var(--gray-3)"></div>'+
+        '<button class="btn sm">Choose</button></div>',
+    Mission:'<div style="display:flex;gap:8px;align-items:flex-end"><div style="flex:1">'+
+      '<label class="fld">Mission</label><input class="inp" value="Shelf photo - Cebu" disabled '+
+      'style="background:var(--gray-6);color:var(--gray-3)"></div><button class="btn sm">Choose</button></div>',
+    Custom:'<button class="btn sm">Edit</button>'
+  };
+
+  const toHex=c=>{const m=String(c).match(/\d+/g);
+    return m?'#'+m.slice(0,3).map(n=>(+n).toString(16).padStart(2,'0')).join('').toUpperCase():String(c).toUpperCase();};
+  const MON=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  function fmt(iso){ if(!iso) return '';
+    const d=new Date(iso), h=d.getHours(), ap=h<12?'AM':'PM', h12=h%12===0?12:h%12;
+    return d.getDate()+' '+MON[d.getMonth()]+' '+d.getFullYear()+', '+h12+':'+String(d.getMinutes()).padStart(2,'0')+' '+ap; }
+  [['start','Starts'],['end','Ends']].forEach(([k])=>{
+    const txt=$(k+'Txt'), iso=$(k+'Iso'), clr=$(k+'Clr');
+    const upd=()=>{ txt.value=fmt(iso.value); clr.style.visibility=iso.value?'visible':'hidden'; };
+    txt.addEventListener('click',()=>{ if(iso.showPicker) iso.showPicker(); else iso.focus(); });
+    iso.addEventListener('change',upd);
+    clr.addEventListener('click',e=>{ e.preventDefault(); iso.value=''; upd(); });
+    upd();
+  });
+  const SARI='https://picsum.photos/seed/hustle-sari/120/120';
+  const POST_HTML='<div class="c">'+
+    '<div class="byline"><span class="av" id="pvAv"><img id="pvAvatar" src="" alt="" style="width:40px;height:40px;object-fit:cover"></span>'+
+    '<div class="grow"><div class="who"><span id="pvName"></span><span id="pvPill" style="background:#E4E4E4;border-radius:999px;'+
+    'padding:2px 7px;font-size:8px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#5A5A5A"></span></div>'+
+    '<div class="when">1 Oct 2026</div></div></div>'+
+    '<div class="body" id="pvBody"></div><div id="pvMedia"></div>'+
+    '<div class="foot"><button class="heart"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#8E8E8E" '+
+    'stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5 4.2 13a4.7 4.7 0 0 1 6.6-6.7l1.2 1.2 '+
+    '1.2-1.2A4.7 4.7 0 0 1 19.8 13z"/></svg><span>0</span></button></div></div>';
+  let customAvatar=SARI;
+  let images=['https://picsum.photos/seed/hustle-season/716/392'];
+  let video={file:'season-3-teaser.mp4',poster:null};
+  let poll={options:['At home','On the go'],closes:''};
+  let art={style:'Article',url:'https://hustle-ph.com/checking',title:'Why was my submission rejected?',
+    meta:'3 min read',tag:'Article',fill:'#A8BFF0',ink:'#1A2A5C',
+    img:'https://picsum.photos/seed/hustle-reject/152/152'};
+  const TAGPAL={Article:['#A8BFF0','#1A2A5C'],Tip:['#FBD7F1','#5C1F50']};
+  function artHTML(){
+    return '<label class="fld">Destination <span class="req">*</span></label>'+
+      '<input class="inp" id="aUrl" value="'+art.url+'" placeholder="https://">'+
+      '<label class="fld" style="margin-top:14px">Item image <span class="req">*</span></label>'+
+      '<div style="display:flex;gap:10px;align-items:center">'+
+      '<img src="'+art.img+'" alt="" style="width:48px;height:48px;border-radius:8px;object-fit:cover;flex-shrink:0">'+
+      '<button class="btn tertiary sm">Replace</button><span class="label-s">1:1</span></div>'+
+      '<label class="fld" style="margin-top:14px">Item title <span class="req">*</span></label>'+
+      '<input class="inp" id="aTitle" value="'+art.title+'">'+
+      '<div class="grid2" style="margin-top:14px">'+
+      '<div><label class="fld">Item tag <span class="req">*</span></label><input class="inp" id="aTag" value="'+art.tag+'"></div>'+
+      '<div><label class="fld">Item meta</label><input class="inp" id="aMeta" value="'+art.meta+'" placeholder="Optional"></div></div>'+
+      '<div class="grid2" style="margin-top:14px">'+
+      '<div><label class="fld">Tag style</label><select class="inp" id="aStyle">'+
+      ['Article','Tip','Custom'].map(n=>'<option'+(n===art.style?' selected':'')+'>'+n+'</option>').join('')+'</select></div>'+
+      '<div><span class="cl">Tag colours</span><div style="display:flex;gap:8px">'+
+      '<span class="clr locked"><b id="aFill" style="background:'+art.fill+'"></b><i class="hx" style="font-style:normal">'+art.fill+'</i></span>'+
+      '<span class="clr locked"><b id="aInk" style="background:'+art.ink+'"></b><i class="hx" style="font-style:normal">'+art.ink+'</i></span>'+
+      '</div></div></div>';
+  }
+  function wireArt(){
+    ['aUrl','aTitle','aTag','aMeta'].forEach(id=>$(id).addEventListener('input',()=>{
+      art.url=$('aUrl').value; art.title=$('aTitle').value; art.tag=$('aTag').value; art.meta=$('aMeta').value;
+      artPV(); }));
+    $('aStyle').addEventListener('change',()=>{
+      art.style=$('aStyle').value; const c=TAGPAL[art.style];
+      const locked=!!c; if(c){ art.fill=c[0]; art.ink=c[1]; }
+      $('aFill').style.background=art.fill; $('aFill').nextElementSibling.textContent=art.fill;
+      $('aInk').style.background=art.ink; $('aInk').nextElementSibling.textContent=art.ink;
+      $('aFill').closest('div').querySelectorAll('.clr').forEach(c2=>c2.classList.toggle('locked',locked));
+      artPV(); });
+    artPV();
+  }
+  function artPV(){
+    const m=$('pvMedia'); if(!m) return;
+    m.innerHTML='<div style="padding:0 16px 12px"><a href="#" style="display:flex;align-items:center;gap:13px;'+
+      'background:#F5F5F5;border-radius:14px;padding:11px;text-decoration:none;color:inherit">'+
+      '<img src="'+art.img+'" alt="" style="width:72px;height:72px;border-radius:12px;flex-shrink:0;object-fit:cover">'+
+      '<div style="flex-grow:1;min-width:0">'+
+      (art.tag?'<span style="background:'+art.fill+';color:'+art.ink+';border-radius:999px;padding:2px 8px;font-size:9.5px;'+
+        'font-weight:700;letter-spacing:.06em;text-transform:uppercase">'+art.tag+'</span>':'')+
+      '<div style="font-size:15px;font-weight:800;line-height:1.25;margin-top:4px">'+(art.title||'&nbsp;')+'</div>'+
+      (art.meta?'<div style="font-size:12.5px;color:#8E8E8E;margin-top:5px">'+art.meta+'</div>':'')+
+      '</div></a></div>';
+  }
+  let quote={text:'Hustle paid for our new fridge.',attr:'Joy, Davao'};
+  function quoteHTML(){
+    return '<label class="fld">Quote <span class="req">*</span></label>'+
+      '<textarea class="inp ta" id="qText" rows="2">'+quote.text+'</textarea>'+
+      '<label class="fld" style="margin-top:14px">Attribution <span class="req">*</span></label>'+
+      '<input class="inp" id="qAttr" value="'+quote.attr+'">';
+  }
+  function wireQuote(){
+    ['qText','qAttr'].forEach(id=>$(id).addEventListener('input',()=>{
+      quote.text=$('qText').value; quote.attr=$('qAttr').value; quotePV(); }));
+    quotePV();
+  }
+  function quotePV(){
+    const m=$('pvMedia'); if(!m) return;
+    m.innerHTML='<div style="padding:0 16px 12px">'+
+      '<div style="font-size:40px;line-height:.5;font-weight:800;color:#D8D8D8;margin:2px 0 10px">\u201c</div>'+
+      '<div style="font-size:18px;font-weight:700;line-height:1.38">'+(quote.text||'&nbsp;')+'</div>'+
+      (quote.attr?'<div style="font-size:12.5px;color:#8E8E8E;margin-top:9px">\u2014 '+quote.attr+'</div>':'')+'</div>';
+  }
+  let rank={heading:'This month\u2019s MVP Hustlers', shown:5,
+    pillStyle:'Medal', valueStyle:'Yellow',
+    rows:[{pill:'1ST',name:'Maria Santos',value:'\u20b110,000',fill:'#F5B800',ink:'#5C4600'},
+          {pill:'2ND',name:'Jomar Dela Cruz',value:'\u20b18,000',fill:'#CFCFCF',ink:'#4A4A4A'},
+          {pill:'3RD',name:'Frazile Plaza',value:'\u20b15,000',fill:'#DFA974',ink:'#4A2A08'}]};
+  const RKPAL=[['#F5B800','#5C4600'],['#CFCFCF','#4A4A4A'],['#DFA974','#4A2A08'],['#147F67','#FFFFFF']];
+  const RANKSTYLE={Medal:null,'Brand green':['#147F67','#FFFFFF']};
+  const VALPAL={Yellow:['#FCE49A','#5C4600'],'Brand green':['#147F67','#FFFFFF'],'No fill':null};
+  function rowColours(i){
+    return rank.pillStyle==='Medal' ? RKPAL[Math.min(i,3)] : ['#147F67','#FFFFFF'];
+  }
+  function swPair(idFill,idInk,fill,ink,locked){
+    const c=v=>'<span class="clr'+(locked?' locked':'')+'"><b style="background:'+v+'"></b>'+
+      '<i class="hx" style="font-style:normal">'+v+'</i></span>';
+    return '<div style="display:flex;gap:8px" id="'+idFill+'">'+c(fill)+c(ink)+'</div>';
+  }
+  function rankHTML(){
+    const cols='22px 1.15fr 1.5fr 1fr 44px';
+    const head='<div style="display:grid;grid-template-columns:'+cols+';gap:8px;align-items:center;margin-bottom:6px">'+
+      '<span></span>'+['Rank pill','Name','Value'].map(t=>'<span class="cl">'+t+'</span>').join('')+'<span></span></div>';
+    let rows='';
+    rank.rows.forEach((r,i)=>{
+      rows+='<div style="display:grid;grid-template-columns:'+cols+';gap:8px;align-items:center">'+
+        '<span class="drag" style="cursor:grab">&#8942;&#8942;</span>'+
+        '<input class="inp" data-rp="'+i+'" value="'+r.pill+'" placeholder="Optional">'+
+        '<input class="inp" data-rn="'+i+'" value="'+r.name+'">'+
+        '<input class="inp" data-rv="'+i+'" value="'+r.value+'" placeholder="Optional">'+
+        '<span style="display:flex;justify-content:flex-end">'+
+        '<button class="rowbtn" data-rrm="'+i+'"'+(rank.rows.length<2?' disabled':'')+' aria-label="Remove">'+
+        '<i class="fa-solid fa-trash-alt"></i></button></span></div>';
+    });
+    const pill=(t,f,k)=>'<span style="background:'+f+';color:'+k+';border-radius:999px;padding:4px 11px;font-size:9.5px;'+
+      'font-weight:800;letter-spacing:.06em">'+t+'</span>';
+    const swatches = rank.pillStyle==='Medal'
+      ? ['1ST','2ND','3RD','4TH+'].map((t,i)=>pill(t,RKPAL[i][0],RKPAL[i][1])).join('')
+      : pill('TOP 1','#147F67','#FFFFFF');
+    return '<label class="fld" style="margin-top:14px">Heading</label>'+
+      '<input class="inp" id="rkHead" value="'+rank.heading+'" placeholder="Optional. Also titles the See all screen">'+
+      '<label class="fld" style="margin-top:14px">Rows <span class="req">*</span></label>'+
+      head+'<div style="display:flex;flex-direction:column;gap:8px">'+rows+
+      '<button class="btn tertiary sm" data-radd="1" style="align-self:flex-start">+ Add row</button></div>'+
+      '<div style="border-top:1px solid var(--gray-5);margin-top:18px;padding-top:16px">'+
+      '<div class="grid2">'+
+      '<div><label class="fld">Rank pill style</label><select class="inp" id="rkStyle">'+
+        ['Medal','Brand green'].map(n=>'<option'+(n===rank.pillStyle?' selected':'')+'>'+n+'</option>').join('')+'</select></div>'+
+      '<div><span class="cl">Gives you</span><div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">'+swatches+'</div></div>'+
+      '</div>'+
+      '<div class="grid2" style="margin-top:16px">'+
+      '<div><label class="fld">Value style</label><select class="inp" id="rkVStyle">'+
+        ['Yellow','Brand green','No fill'].map(n=>'<option'+(n===rank.valueStyle?' selected':'')+'>'+n+'</option>').join('')+'</select></div>'+
+      '<div><span class="cl">Gives you</span><div style="margin-top:4px">'+
+        (VALPAL[rank.valueStyle]?pill('\u20b110,000',VALPAL[rank.valueStyle][0],VALPAL[rank.valueStyle][1])
+          :'<span style="font-size:16px;font-weight:800;letter-spacing:-.02em">\u20b110,000</span>')+'</div></div>'+
+      '</div></div>'+
+      '<div class="grid2" style="margin-top:14px">'+
+      '<div><label class="fld">Max rows shown</label><input class="inp" id="rkShown" value="'+rank.shown+'"></div><div></div></div>'+
+      '<div class="hint">A See all link appears when there are more rows than this.</div>';
+  }
+  function wireRank(){
+    const box=$('ctFields');
+    const bind=(sel,key,prop)=>box.querySelectorAll(sel).forEach(i2=>i2.addEventListener('input',()=>{
+      rank.rows[+i2.dataset[key]][prop]=i2.value; rankPV(); }));
+    bind('[data-rp]','rp','pill'); bind('[data-rn]','rn','name'); bind('[data-rv]','rv','value');    box.querySelectorAll('[data-rci]').forEach(b2=>b2.addEventListener('click',e=>{ e.preventDefault(); cycle(+b2.dataset.rci); }));
+    const move=(a2,b3)=>{ const [x]=rank.rows.splice(a2,1); rank.rows.splice(b3,0,x); sync(); };
+    box.querySelectorAll('[data-rrm]').forEach(b2=>b2.addEventListener('click',e=>{
+      e.preventDefault(); if(rank.rows.length>1){ rank.rows.splice(+b2.dataset.rrm,1); sync(); } }));
+    const add=box.querySelector('[data-radd]');
+    if(add) add.addEventListener('click',e=>{ e.preventDefault();
+      const c=RKPAL[Math.min(rank.rows.length,3)];
+      rank.rows.push({pill:'',name:'',value:'',fill:c[0],ink:c[1]}); sync(); });
+    $('rkHead').addEventListener('input',()=>{ rank.heading=$('rkHead').value; rankPV(); });
+    $('rkShown').addEventListener('input',()=>{ rank.shown=$('rkShown').value; rankPV(); });
+    $('rkStyle').addEventListener('change',()=>{ rank.pillStyle=$('rkStyle').value; sync(); });
+    $('rkVStyle').addEventListener('change',()=>{ rank.valueStyle=$('rkVStyle').value; sync(); });
+    rankPV();
+  }
+  function rankPV(){
+    const m=$('pvMedia'); if(!m) return;
+    const n=parseInt(rank.shown,10)||rank.rows.length;
+    const vis=rank.rows.slice(0,n);
+    let h='<div style="padding:0 16px 8px">';
+    if(rank.heading) h+='<div style="font-size:15px;font-weight:800;margin-bottom:2px">'+rank.heading+'</div>';
+    vis.forEach((r,i)=>{
+      const vc=VALPAL[rank.valueStyle];
+      const val=!r.value?'' : vc
+        ? '<span style="background:'+vc[0]+';color:'+vc[1]+';border-radius:999px;padding:4px 10px;font-size:10.5px;font-weight:800;flex-shrink:0">'+r.value+'</span>'
+        : '<span style="font-size:16px;font-weight:800;letter-spacing:-.02em;flex-shrink:0">'+r.value+'</span>';
+      h+='<div style="display:flex;align-items:center;gap:11px;padding:12px 0;'+
+        (i===vis.length-1?'':'border-bottom:1px solid #F0F0F0')+'">'+
+        (r.pill?'<span style="background:'+rowColours(i)[0]+';color:'+rowColours(i)[1]+';border-radius:999px;padding:4px 11px;font-size:9.5px;'+
+        'font-weight:800;letter-spacing:.06em;flex-shrink:0">'+r.pill+'</span>':'')+
+        '<span style="flex-grow:1;font-size:13.5px;font-weight:700">'+(r.name||'&nbsp;')+'</span>'+val+'</div>';
+    });
+    if(rank.rows.length>vis.length)
+      h+='<div style="display:flex;align-items:center;justify-content:center;gap:5px;padding:11px 0 3px;'+
+        'font-size:13px;font-weight:800;color:#147F67">See all '+rank.rows.length+'</div>';
+    m.innerHTML=h+'</div>';
+  }
+  function videoHTML(){
+    const drop=(label,act)=>'<button data-v="'+act+'" style="display:flex;align-items:center;gap:10px;width:100%;'+
+      'border:1.5px dashed var(--gray-5);background:#fff;border-radius:8px;padding:12px;cursor:pointer;font-family:inherit;'+
+      'font-size:.875rem;font-weight:700;color:var(--brand-green)">'+
+      '<span style="width:38px;height:38px;border-radius:8px;background:var(--gray-6);display:flex;align-items:center;'+
+      'justify-content:center;color:var(--gray-3);font-size:1.2rem">+</span>'+label+'</button>';
+    let h='<label class="fld" style="margin-top:14px">Video <span class="req">*</span></label>';
+    h += video.file
+      ? '<div style="display:flex;gap:10px;align-items:center">'+
+        '<div style="position:relative;width:62px;height:35px;border-radius:8px;overflow:hidden;flex-shrink:0;background:#14261F">'+
+        '<img src="'+(video.poster||POSTER)+'" alt="" style="width:62px;height:35px;object-fit:cover;opacity:.75">'+
+        '<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">'+
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="#fff"><path d="M7 4l13 8-13 8z"/></svg></span></div>'+
+        '<div style="flex:1;min-width:0;font-size:.875rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;'+
+        'white-space:nowrap">'+video.file+'</div>'+
+        '<button class="btn tertiary sm" data-v="replace">Replace</button>'+
+        '<button class="no-border" data-v="remove">Remove</button></div>'
+      : drop('Upload video','replace')+'<p class="fg-danger">A video is required.</p>';
+    h += '<label class="fld" style="margin-top:14px">Poster</label>';
+    h += video.poster
+      ? '<div style="display:flex;gap:10px;align-items:center">'+
+        '<img src="'+video.poster+'" alt="" style="width:62px;height:35px;border-radius:8px;object-fit:cover;flex-shrink:0">'+
+        '<div style="flex:1;min-width:0;font-size:.875rem;font-weight:700">poster.jpg</div>'+
+        '<button class="btn tertiary sm" data-v="preplace">Replace</button>'+
+        '<button class="no-border" data-v="premove">Remove</button></div>'
+      : drop('Upload poster','preplace')+'<div class="hint">Cut from the video unless you upload one.</div>';
+    return h;
+  }
+  function pollHTML(){
+    let h='<label class="fld" style="margin-top:14px">Options <span class="req">*</span></label>'+
+      '<div style="display:flex;flex-direction:column;gap:8px">';
+    poll.options.forEach((o2,i)=>{
+      h+='<div style="display:flex;gap:8px;align-items:center">'+
+        '<span class="drag" style="cursor:grab">&#8942;&#8942;</span>'+
+        '<input class="inp" data-po="'+i+'" value="'+o2.replace(/"/g,'&quot;')+'">'+
+        '<button class="rowbtn" data-prm="'+i+'" aria-label="Remove"'+(poll.options.length<3?' disabled':'')+
+        '><i class="fa-solid fa-trash-alt"></i></button></div>';
+    });
+    h+='<button class="btn tertiary sm" data-padd="1" style="align-self:flex-start">+ Add option</button></div>';
+    h+='<label class="fld" style="margin-top:14px">Closes</label>'+
+      '<div style="display:flex;align-items:center;gap:8px;position:relative">'+
+      '<input class="inp" id="closesTxt" readonly placeholder="Never" value="'+fmt(poll.closes)+'" style="cursor:pointer">'+
+      '<input type="datetime-local" id="closesIso" value="'+poll.closes+'" style="position:absolute;left:0;bottom:0;'+
+      'width:1px;height:1px;opacity:0;pointer-events:none">'+
+      '<button class="no-border" id="closesClr"'+(poll.closes?'':' style="visibility:hidden"')+'>Clear</button></div>'+
+      '<div class="hint">Leave empty and voting never closes.</div>';
+    return h;
+  }
+  function wirePoll(){
+    const box=$('ctFields');
+    box.querySelectorAll('[data-po]').forEach(i2=>i2.addEventListener('input',()=>{
+      poll.options[+i2.dataset.po]=i2.value; pollPV(); }));
+    box.querySelectorAll('[data-prm]').forEach(b2=>b2.addEventListener('click',e=>{
+      e.preventDefault(); if(poll.options.length>2){ poll.options.splice(+b2.dataset.prm,1); sync(); } }));
+    const add=box.querySelector('[data-padd]');
+    if(add) add.addEventListener('click',e=>{ e.preventDefault(); poll.options.push(''); sync(); });
+    const txt=$('closesTxt'), iso=$('closesIso'), clr=$('closesClr');
+    const upd=()=>{ poll.closes=iso.value; txt.value=fmt(iso.value);
+      clr.style.visibility=iso.value?'visible':'hidden'; };
+    txt.addEventListener('click',()=>{ if(iso.showPicker) iso.showPicker(); else iso.focus(); });
+    iso.addEventListener('change',upd);
+    clr.addEventListener('click',e=>{ e.preventDefault(); iso.value=''; upd(); });
+    pollPV();
+  }
+  function pollPV(){
+    const m=$('pvMedia'); if(!m) return;
+    m.innerHTML='<div style="padding:0 16px 12px;display:flex;flex-direction:column;gap:8px">'+
+      poll.options.map(o3=>'<div style="height:40px;border:1.5px solid #DCDCDC;border-radius:10px;display:flex;'+
+      'align-items:center;padding:0 13px;font-size:13.5px;font-weight:700">'+(o3||'&nbsp;')+'</div>').join('')+'</div>';
+  }
+  function videoPV(){
+    if(!video.file) return '';
+    return '<div style="position:relative"><img src="'+(video.poster||POSTER)+'" alt="" style="height:196px">'+
+      '<span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">'+
+      '<span style="width:56px;height:56px;border-radius:999px;background:rgba(255,255,255,.94);display:flex;'+
+      'align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 24 24" fill="#1A1A1A" '+
+      'style="margin-left:3px"><path d="M7 4l13 8-13 8z"/></svg></span></span></div>';
+  }
+  function mosaic(){
+    const n=images.length; if(!n) return '';
+    if(n===1) return '<img src="'+images[0]+'" alt="" style="height:196px">';
+    const cell=(src,h,extra)=>'<div style="position:relative;flex:1"><img src="'+src+'" alt="" style="height:'+h+'px">'+(extra||'')+'</div>';
+    if(n===2) return '<div style="display:flex;gap:3px">'+cell(images[0],201)+cell(images[1],201)+'</div>';
+    const more=n>3?'<b style="position:absolute;inset:0;background:rgba(26,26,26,.55);display:flex;align-items:center;'+
+      'justify-content:center;font-size:24px;font-weight:800;color:#fff">+'+(n-2)+'</b>':'';
+    return '<div style="display:flex;gap:3px;height:201px">'+
+      '<img src="'+images[0]+'" alt="" style="width:178px;height:201px;flex-shrink:0">'+
+      '<div style="flex-grow:1;display:flex;flex-direction:column;gap:3px">'+
+      '<img src="'+images[1]+'" alt="" style="height:99px">'+
+      '<div style="position:relative;flex-grow:1"><img src="'+images[2]+'" alt="" style="height:99px">'+more+'</div></div></div>';
+  }
+  function imagesHTML(){
+    let h='<label class="fld" style="margin-top:14px">Images</label>'+
+      '<div style="display:flex;flex-direction:column;gap:9px">';
+    images.forEach((src,i)=>{ h+='<div style="display:flex;gap:10px;align-items:center">'+
+      '<img src="'+src+'" alt="" style="width:62px;height:35px;border-radius:8px;object-fit:cover;flex-shrink:0">'+
+      '<input class="inp" placeholder="Alt text for this image (optional)">'+
+      '<button class="no-border" data-img="'+i+'">Remove</button></div>'; });
+    h+='<button data-addimg="1" style="width:62px;height:62px;border-radius:8px;border:1.5px dashed var(--gray-5);'+
+      'background:#fff;display:flex;align-items:center;justify-content:center;color:var(--gray-3);font-size:1.4rem;cursor:pointer">+</button>';
+    if(!images.length) h+='<p class="fg-danger">Add a message or at least one image. A post cannot be empty.</p>';
+    return h+'</div>';
+  }
+  function renderAvatar(){
+    const box=$('avatarUpload'), custom=$('avatar').value==='Custom';
+    const thumb=src=>'<img src="'+src+'" alt="" style="width:38px;height:38px;border-radius:999px;flex-shrink:0;'+
+      'border:1px solid var(--gray-5);object-fit:cover">';
+    if(!custom){
+      box.innerHTML='<div style="display:flex;align-items:center;gap:10px">'+thumb('hustle_logo.png')+'</div>';
+      return;
+    }
+    if(customAvatar){
+      box.innerHTML='<div style="display:flex;align-items:center;gap:10px">'+thumb(customAvatar)+
+        '<button class="btn tertiary sm" data-a="replace">Replace</button>'+
+        '<button class="no-border" data-a="remove">Remove</button></div>';
+    } else {
+      box.innerHTML='<div style="display:flex;align-items:center;gap:10px">'+
+        '<div style="width:38px;height:38px;border-radius:999px;border:1.5px dashed var(--danger);display:flex;'+
+        'align-items:center;justify-content:center;color:var(--gray-3);font-size:1.1rem;flex-shrink:0">+</div>'+
+        '<button class="btn tertiary sm" data-a="replace">Upload</button></div>'+
+        '<p class="fg-danger">An avatar is required. Upload one or switch to Hustle logo.</p>';
+    }
+    box.querySelectorAll('[data-a]').forEach(b2=>b2.addEventListener('click',e=>{
+      e.preventDefault();
+      customAvatar = b2.dataset.a==='remove' ? null : SARI;
+      renderAvatar(); sync();
+    }));
+  }
+  function sync(){
+    const ct=$('ctype').value;
+    if(document.querySelector('.radio[data-type].on').dataset.type!=='Post') return;
+    const quote = ct==='Quote';
+    $('msg').style.display = quote?'none':'';
+    [...$('msg').parentNode.children].forEach(e=>{
+      if(e.tagName==='LABEL' && e.textContent.trim()==='Message') e.style.display=quote?'none':'';
+      if(e.className==='hint') e.style.display=quote?'none':''; });
+    $('ctFields').innerHTML = ct==='Photos' ? imagesHTML() : ct==='Video' ? videoHTML()
+      : ct==='Poll' ? pollHTML() : ct==='Ranked list' ? rankHTML() : ct==='Quote' ? quoteHTML() : ct==='Article link' ? artHTML() : (CT[ct]||'');
+    if(ct==='Poll') wirePoll();
+    if(ct==='Ranked list') wireRank();
+    if(ct==='Quote') wireQuote();
+    if(ct==='Article link') wireArt();
+    if(ct==='Video'){
+      $('ctFields').querySelectorAll('[data-v]').forEach(b2=>b2.addEventListener('click',e=>{
+        e.preventDefault(); const a=b2.dataset.v;
+        if(a==='replace') video.file='season-3-teaser.mp4';
+        if(a==='remove'){ video.file=null; video.poster=null; }
+        if(a==='preplace') video.poster=POSTER;
+        if(a==='premove') video.poster=null;
+        sync(); }));
+    }
+    if(ct==='Photos'){
+      $('ctFields').querySelectorAll('[data-img]').forEach(b2=>b2.addEventListener('click',e=>{
+        e.preventDefault(); images.splice(+b2.dataset.img,1); sync(); }));
+      const add=$('ctFields').querySelector('[data-addimg]');
+      if(add) add.addEventListener('click',e=>{ e.preventDefault();
+        images.push('https://picsum.photos/seed/'+SEEDS[images.length%SEEDS.length]+'/716/392'); sync(); });
+    }
+    $('pvMedia').innerHTML = ct==='Photos' ? mosaic() : ct==='Video' ? videoPV() : (PV[ct]||'');
+    if(ct==='Poll') pollPV();
+    if(ct==='Ranked list') rankPV();
+    if(ct==='Quote') quotePV();
+    if(ct==='Article link') artPV();
+    if(!$('pvSlot').querySelector('#pvAvatar')) return;
+    const custom = $('avatar').value==='Custom';
+    const src = custom ? customAvatar : 'hustle_logo.png';
+    $('pvAvatar').style.display = src ? '' : 'none';
+    $('pvAv').style.background = src ? 'transparent' : 'var(--gray-5)';
+    if(src) $('pvAvatar').src = src;
+    const ps=$('pillstyle').value, preset=PILL[ps];
+    $('pillPickers').querySelectorAll('.clr').forEach(c=>c.classList.toggle('locked',!!preset));
+    const fill = preset?preset[0]:$('swFill').style.background;
+    const ink  = preset?preset[1]:$('swInk').style.background;
+    $('swFill').style.background=fill; $('txFill').textContent=toHex(fill);
+    $('swInk').style.background=ink;   $('txInk').textContent=toHex(ink);
+    if(!$('pvName')) return;
+    $('pvName').textContent=$('pname').value||'Untitled';
+    const pv=$('pvPill'); pv.textContent=$('pill').value;
+    pv.style.display=$('pill').value?'inline-block':'none';
+    pv.style.background=fill; pv.style.color=ink;
+    const noMsg = $('ctype').value==='Quote';
+    $('pvBody').textContent=noMsg?'':$('msg').value;
+    $('pvBody').style.display=(!noMsg && $('msg').value)?'block':'none';
+  }
+  ['ctype','avatar','pillstyle','pname','pill','msg'].forEach(id=>{
+    const el=$(id);
+    const h=()=>{ if(id==='avatar') renderAvatar(); sync(); };
+    el.addEventListener('input',h); el.addEventListener('change',h);
+  });
+  document.querySelectorAll('#targeting label').forEach(l=>l.addEventListener('click',()=>{
+    document.querySelectorAll('#targeting label').forEach(x=>x.classList.remove('on'));
+    l.classList.add('on'); $('tFields').innerHTML=TF[l.dataset.t]||'';
+  }));
+  // ---- type drives the whole Content card and the preview
+  const SW=(id,names,vals)=>'<div class="swgrid" id="'+id+'">'+names.map((n,i)=>
+    '<div><span class="cl">'+n+'</span><span class="clr locked"><b style="background:'+vals[i]+'"></b>'+
+    '<i class="hx" style="font-style:normal">'+vals[i]+'</i></span></div>').join('')+'</div>';
+  const TYPE={
+    'Feature card':{
+      fields:'<label class="fld">Image position</label>'+
+        '<select class="inp" id="featPos2"><option>Top</option><option>Behind</option><option>Beside</option><option>Image only</option></select>'+
+        '<label class="fld" style="margin-top:14px">Image <span class="req">*</span></label>'+
+        '<div style="display:flex;gap:10px;align-items:center"><img src="https://picsum.photos/seed/hustle-raffle/160/90" alt="" style="width:72px;height:41px;border-radius:6px;object-fit:cover"><button class="btn tertiary sm">Replace</button></div>'+
+        '<div id="fText"><label class="fld" style="margin-top:14px">Headline</label><input class="inp" value="₱10,000 raffle this September">'+
+        '<label class="fld" style="margin-top:14px">Sub-line</label><input class="inp" placeholder="Optional">'+
+        '<div class="grid3" style="margin-top:14px">'+
+        '<div><label class="fld">Tag chip</label><input class="inp" id="tagc" placeholder="Optional"></div>'+
+        '<div><label class="fld">Timing chip</label><input class="inp" id="timec" placeholder="Optional"></div>'+
+        '<div><label class="fld">CTA label</label><input class="inp" id="cta" placeholder="Optional"></div></div></div>'+
+        '<label class="fld" style="margin-top:14px">Destination</label>'+
+        '<select class="inp" id="dest"><option>None</option><option selected>A run</option><option>A tab</option>'+
+        '<option>Daily check-in</option><option>External URL</option></select>'+
+        '<div id="destFields" style="margin-top:10px"></div>'+
+        '<div id="fColours" style="border-top:1px solid var(--gray-5);margin-top:18px;padding-top:16px">'+
+        '<label class="fld">Colour preset</label><select class="inp" id="featPreset2">'+
+        '<option>Default for this position</option><option>Brand green</option><option>Gold</option><option>Dark</option><option>Custom</option></select>'+
+        '<label class="fld" style="margin-top:14px">Colours</label>'+
+        SW('featSw2',['Surface fill','Surface text','Tag chip fill','Tag chip text','Timing chip fill','Timing chip text','CTA fill','CTA text'],
+                     ['#FFFFFF','#1A1A1A','#0E6B4F','#FFFFFF','#E8F2EE','#10352A','#0E6B4F','#FFFFFF'])+'</div>',
+      pv:'<div class="c"><img src="https://picsum.photos/seed/hustle-raffle/716/358" alt="" style="height:180px">'+
+        '<div style="padding:14px 16px 16px"><span style="background:#0E6B4F;color:#fff;border-radius:999px;padding:3px 10px;font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase">Raffle</span>'+
+        '<div style="font-size:23px;font-weight:800;line-height:1.16;letter-spacing:-.025em;margin-top:8px">₱10,000 raffle this September</div>'+
+        '<span style="display:inline-flex;align-items:center;height:46px;padding:0 22px;background:#0E6B4F;border-radius:999px;font-size:15px;font-weight:700;color:#fff;margin-top:12px">Join now</span></div></div>'},
+    Notice:{
+      fields:'<label class="fld">Headline <span class="req">*</span></label><input class="inp" value="No cash out this Sunday, 1–4 AM">'+
+        '<label class="fld" style="margin-top:14px">Sub-line</label><input class="inp" placeholder="Optional">'+
+        '<label class="fld" style="margin-top:14px">Detail</label>'+
+        '<textarea class="inp ta" id="ndetail" rows="2" placeholder="Optional. Adding one makes the notice tappable and opens a sheet"></textarea>'+
+        '<div id="nbtn"><label class="fld" style="margin-top:14px">Button label</label>'+
+        '<input class="inp" placeholder="Got it"></div>'+
+        '<div style="border-top:1px solid var(--gray-5);margin-top:18px;padding-top:16px">'+
+        '<label class="fld">Tone</label><select class="inp" id="noticeTone2"><option>Info</option><option>Positive</option><option>Urgent</option><option>Custom</option></select>'+
+        '<label class="fld" style="margin-top:14px">Colours</label>'+
+        SW('noticeSw2',['Fill','Text'],['#FBEFA4','#7A6700'])+'</div>',
+      pv:'<a style="display:flex;align-items:center;gap:11px;background:#FBEFA4;border-radius:14px;padding:13px 15px;text-decoration:none">'+
+        '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#7A6700" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4.6M12 16.2v.1"/></svg>'+
+        '<span style="flex-grow:1;font-size:14px;font-weight:700;line-height:1.3;color:#4A4000">No cash out this Sunday, 1–4 AM</span>'+
+        '<svg width="12" height="12" viewBox="0 0 24 24" fill="#7A6700"><path d="M8 4l10 8-10 8z"/></svg></a>'},
+    Collection:{
+      fields:'<label class="fld">Orientation</label><select class="inp" id="collOrient2"><option>Horizontal</option><option>Vertical</option></select>'+
+        '<label class="fld" style="margin-top:14px">Heading</label>'+
+        '<input class="inp" value="More ways to earn" placeholder="Optional. Without one the items run straight into the feed">'+
+        '<label class="fld" style="margin-top:14px">Items</label>'+
+        '<div style="display:flex;flex-direction:column;gap:8px">'+
+        '<div style="display:flex;gap:9px;align-items:center;border:1px solid var(--gray-5);border-radius:8px;padding:8px">'+
+        '<img src="https://picsum.photos/seed/hustle-survey/120/72" alt="" style="width:52px;height:32px;border-radius:5px;object-fit:cover;flex-shrink:0">'+
+        '<div style="flex:1;min-width:0;font-size:.875rem;font-weight:700">7 new surveys</div>'+
+        '<span style="background:#A8BFF0;color:#1A2A5C;border-radius:999px;padding:3px 9px;font-size:.6875rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase">Survey</span>'+
+        '<button class="no-border">Edit</button></div>'+
+        '<button class="btn tertiary sm" style="align-self:flex-start">+ Add item</button></div>',
+      pv:'<div><div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:9px">'+
+        '<span style="font-size:19px;font-weight:800;letter-spacing:-.02em">More ways to earn</span></div>'+
+        '<div style="display:flex;gap:12px"><div class="c" style="flex:0 0 166px"><img src="https://picsum.photos/seed/hustle-survey/346/212" alt="" style="height:100px">'+
+        '<div style="padding:11px 12px 13px"><span style="background:#A8BFF0;color:#1A2A5C;border-radius:999px;padding:3px 10px;font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase">Survey</span>'+
+        '<div style="font-size:14px;font-weight:800;line-height:1.2;margin-top:6px">7 new surveys</div></div></div>'+
+        '<div class="c" style="flex:0 0 166px"><img src="https://picsum.photos/seed/hustle-refer/346/212" alt="" style="height:100px"></div></div></div>'}
+  };
+  function setType(t){
+    document.querySelectorAll('.radio[data-type]').forEach(x=>x.classList.toggle('on',x.dataset.type===t));
+    const post = t==='Post';
+    $('cardByline').style.display = post?'':'none';
+    $('ctypeRow').style.display = post?'':'none';
+    $('msg').parentNode.querySelectorAll('label,textarea,.hint').forEach(e=>e.style.display=post?'':'none');
+    if(post){ $('pvSlot').innerHTML=POST_HTML; $('ctFields').innerHTML=''; renderAvatar(); sync(); return; }
+    $('ctFields').innerHTML = TYPE[t].fields;
+    $('pvSlot').innerHTML = TYPE[t].pv;
+    wireTypeControls(t);
+  }
+  const POS2={Top:['#FFFFFF','#1A1A1A','#0E6B4F','#FFFFFF','#E8F2EE','#10352A','#0E6B4F','#FFFFFF'],
+    Behind:['#14261F','#FFFFFF','#0E6B4F','#FFFFFF','#E8F2EE','#10352A','#F5B800','#3A2E00'],
+    Beside:['#FCE49A','#3A2E00','#FFFFFF','#6B5600','#FCE49A','#8A6E00','#0E6B4F','#FFFFFF'],
+    'Image only':['#FFFFFF','#1A1A1A','#0E6B4F','#FFFFFF','#E8F2EE','#10352A','#0E6B4F','#FFFFFF']};
+  const FP2={'Brand green':['#0E6B4F','#FFFFFF','#FFFFFF','#0E6B4F','#E8F2EE','#10352A','#FCE49A','#3A2E00'],
+    Gold:['#FCE49A','#3A2E00','#FFFFFF','#6B5600','#FFFFFF','#8A6E00','#0E6B4F','#FFFFFF'],
+    Dark:['#14261F','#FFFFFF','#0E6B4F','#FFFFFF','#E8F2EE','#10352A','#F5B800','#3A2E00']};
+  const TONE2={Info:['#FBEFA4','#7A6700'],Positive:['#E4EFEA','#0B4738'],Urgent:['#FFE0E6','#8A0020']};
+  function repaint(box,vals,lock){
+    if(!box) return;
+    box.querySelectorAll('.clr').forEach((c,i)=>{
+      if(vals&&vals[i]){ c.querySelector('b').style.background=vals[i];
+        const h=c.querySelector('.hx'); if(h) h.textContent=vals[i]; }
+      c.classList.toggle('locked',!!lock);
+    });
+  }
+  function featPreview(){
+    if(!$('featPos2')) return;
+    const pos=$('featPos2').value, sw=[...$('featSw2').querySelectorAll('.hx')].map(e=>e.textContent);
+    const ins=$('fText').querySelectorAll('input');
+    const head=ins[0].value, sub=ins[1].value.trim();
+    const tag=$('tagc').value.trim(), time=$('timec').value.trim(), cta=$('cta').value.trim();
+    const IMG='https://picsum.photos/seed/hustle-raffle/716/358';
+    const chip=(t,f,c)=>'<span style="background:'+f+';color:'+c+';border-radius:999px;padding:3px 10px;font-size:9.5px;'+
+      'font-weight:700;letter-spacing:.06em;text-transform:uppercase">'+t+'</span>';
+    const chips=(tag||time)?'<div style="display:flex;gap:7px;margin-bottom:8px">'+
+      (tag?chip(tag,sw[2],sw[3]):'')+(time?chip(time,sw[4],sw[5]):'')+'</div>':'';
+    const btn=cta?'<span style="display:inline-flex;align-items:center;height:46px;padding:0 22px;background:'+sw[6]+
+      ';color:'+sw[7]+';border-radius:999px;font-size:15px;font-weight:700;margin-top:12px">'+cta+'</span>':'';
+    const words=(big)=>chips+'<div style="font-size:'+(big?23:19)+'px;font-weight:800;line-height:1.16;letter-spacing:-.025em">'+head+'</div>'+
+      (sub?'<div style="font-size:14px;line-height:1.45;margin-top:7px;opacity:.7">'+sub+'</div>':'')+btn;
+    let html;
+    if(pos==='Image only'){
+      html='<div class="c"><img src="'+IMG+'" alt="" style="height:180px"></div>';
+    } else if(pos==='Behind'){
+      html='<div class="c" style="position:relative"><img src="'+IMG+'" alt="" style="height:250px">'+
+        '<div style="position:absolute;left:0;right:0;bottom:0;padding:16px;background:'+sw[0]+';color:'+sw[1]+'">'+words(true)+'</div></div>';
+    } else if(pos==='Beside'){
+      html='<div class="c" style="display:flex;align-items:center;gap:13px;padding:15px;background:'+sw[0]+';color:'+sw[1]+'">'+
+        '<div style="flex-grow:1;min-width:0">'+words(false)+'</div>'+
+        '<img src="'+IMG+'" alt="" style="width:76px;height:76px;border-radius:13px;flex-shrink:0;object-fit:cover"></div>';
+    } else {
+      html='<div class="c"><img src="'+IMG+'" alt="" style="height:180px">'+
+        '<div style="padding:14px 16px 16px;background:'+sw[0]+';color:'+sw[1]+'">'+words(true)+'</div></div>';
+    }
+    $('pvSlot').innerHTML=html;
+  }
+  function wireTypeControls(t){
+    if(t==='Feature card'){
+      const DEST={
+        None:'',
+        'A run':'<div style="display:flex;gap:8px;align-items:flex-end"><div style="flex:1">'+
+          '<label class="fld">Run</label><input class="inp" value="QLGP389757" disabled '+
+          'style="background:var(--gray-6);color:var(--gray-3)"></div><button class="btn sm">Choose</button></div>',
+        'A tab':'<label class="fld">Tab</label><select class="inp">'+
+          '<option>Missions</option><option>Submissions</option><option>Game</option><option>Wallet</option><option>Account</option></select>',
+        'Daily check-in':'',
+        'External URL':'<label class="fld">URL</label><input class="inp" value="https://hustle-ph.com/raffle" placeholder="https://">'
+      };
+      const d=()=>{
+        const v=$('dest').value;
+        $('destFields').innerHTML=DEST[v]||'';
+        const bare = $('featPos2') && $('featPos2').value==='Image only';
+        const needs = !bare && $('cta') && $('cta').value.trim() && v==='None';
+        $('dest').classList.toggle('error',!!needs);
+        let msg=$('destErr');
+        if(needs && !msg){ msg=document.createElement('p'); msg.id='destErr'; msg.className='fg-danger';
+          msg.textContent='A CTA label needs somewhere to go.'; $('dest').after(msg); }
+        if(!needs && msg) msg.remove();
+      };
+      $('dest').addEventListener('change',d);
+      if($('cta')) $('cta').addEventListener('input',d);
+      d();
+      const f=()=>{ const pre=$('featPreset2').value, bare=$('featPos2').value==='Image only';
+        $('fText').style.display = bare?'none':'';
+        $('fColours').style.display = bare?'none':'';
+        repaint($('featSw2'), pre==='Custom'?null:(FP2[pre]||POS2[$('featPos2').value]), pre!=='Custom');
+        const has=[true,true, !!$('tagc').value.trim(), !!$('tagc').value.trim(),
+          !!$('timec').value.trim(), !!$('timec').value.trim(),
+          !!$('cta').value.trim(), !!$('cta').value.trim()];
+        [...$('featSw2').children].forEach((c,i)=>c.style.display = has[i]?'':'none');
+        featPreview();
+        if(typeof d==='function') d(); };
+      ['featPreset2','featPos2','tagc','timec','cta'].forEach(id=>{
+        const el=$(id); if(el){ el.addEventListener('change',f); el.addEventListener('input',f); } });
+      $('fText').querySelectorAll('input').forEach(e=>e.addEventListener('input',f));
+      f();
+    }
+    if(t==='Collection'){
+      const f=()=>{
+        const vert=$('collOrient2').value==='Vertical';
+        const head=$('ctFields').querySelectorAll('input')[0].value;
+        const tile=(seed,title,tagT)=>vert
+          ? '<a style="display:flex;align-items:center;gap:13px;background:#fff;border-radius:16px;padding:11px;text-decoration:none;color:inherit">'+
+            '<img src="https://picsum.photos/seed/'+seed+'/152/152" alt="" style="width:76px;height:76px;border-radius:12px;flex-shrink:0;object-fit:cover">'+
+            '<div style="flex-grow:1;min-width:0"><span style="background:#A8BFF0;color:#1A2A5C;border-radius:999px;padding:2px 9px;font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase">'+tagT+'</span>'+
+            '<div style="font-size:15px;font-weight:800;line-height:1.2;margin-top:5px">'+title+'</div></div></a>'
+          : '<div class="c" style="flex:0 0 166px"><img src="https://picsum.photos/seed/'+seed+'/346/212" alt="" style="height:100px">'+
+            '<div style="padding:11px 12px 13px"><span style="background:#A8BFF0;color:#1A2A5C;border-radius:999px;padding:3px 10px;font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase">'+tagT+'</span>'+
+            '<div style="font-size:14px;font-weight:800;line-height:1.2;margin-top:6px">'+title+'</div></div></div>';
+        $('pvSlot').innerHTML='<div>'+(head?'<div style="font-size:19px;font-weight:800;letter-spacing:-.02em;margin-bottom:9px">'+head+'</div>':'')+
+          '<div style="display:flex;'+(vert?'flex-direction:column;gap:9px':'gap:12px')+'">'+
+          tile('hustle-survey','7 new surveys','Survey')+tile('hustle-refer','Refer a friend','Promo')+'</div></div>';
+      };
+      $('collOrient2').addEventListener('change',f);
+      $('ctFields').querySelectorAll('input')[0].addEventListener('input',f);
+      f();
+    }
+    if(t==='Notice'){
+      const f=()=>{
+        const v=$('noticeTone2').value, sw=[...$('noticeSw2').querySelectorAll('.hx')].map(e=>e.textContent);
+        repaint($('noticeSw2'), TONE2[v]||null, v!=='Custom');
+        const detail=$('ndetail').value.trim();
+        $('nbtn').style.display = detail?'':'none';
+        const head=$('ctFields').querySelector('input').value;
+        $('pvSlot').innerHTML='<a style="display:flex;align-items:center;gap:11px;background:'+sw[0]+
+          ';border-radius:14px;padding:13px 15px;text-decoration:none">'+
+          '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="'+sw[1]+'" stroke-width="2">'+
+          '<circle cx="12" cy="12" r="9"/><path d="M12 8v4.6M12 16.2v.1"/></svg>'+
+          '<span style="flex-grow:1;font-size:14px;font-weight:700;line-height:1.3;color:'+sw[1]+'">'+head+'</span>'+
+          (detail?'<svg width="12" height="12" viewBox="0 0 24 24" fill="'+sw[1]+'"><path d="M8 4l10 8-10 8z"/></svg>':'')+'</a>';
+      };
+      ['noticeTone2','ndetail'].forEach(id=>{ const e=$(id);
+        e.addEventListener('change',f); e.addEventListener('input',f); });
+      $('ctFields').querySelector('input').addEventListener('input',f);
+      f();
+    }
+  }
+  document.querySelectorAll('.radio[data-type]').forEach(l=>l.addEventListener('click',()=>{
+    setType(l.dataset.type);
+  }));
+  $('active').addEventListener('click',()=>$('active').classList.toggle('on'));
+  $('tFields').innerHTML=TF.Custom;
+  setType('Post');
+})();
+</script>
+
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  const hex=c=>{const m=String(c).match(/\d+/g);
+    return m?'#'+m.slice(0,3).map(n=>(+n).toString(16).padStart(2,'0')).join('').toUpperCase():String(c).toUpperCase();};
+  function paint(box,vals,lock){
+    if(!box) return;
+    box.querySelectorAll('.clr').forEach((c,i)=>{
+      if(vals && vals[i]){ c.querySelector('b').style.background=vals[i];
+        const h=c.querySelector('.hx'); if(h) h.textContent=vals[i]; }
+      c.classList.toggle('locked',!!lock);
+    });
+  }
+  // ---- Feature card: position sets the defaults, preset overrides all eight
+  const POS={Top:['#FFFFFF','#1A1A1A','#0E6B4F','#FFFFFF','#0E6B4F','#FFFFFF','#E8F2EE','#10352A'],
+             Behind:['#14261F','#FFFFFF','#F5B800','#3A2E00','#0E6B4F','#FFFFFF','#E8F2EE','#10352A'],
+             Beside:['#FCE49A','#3A2E00','#0E6B4F','#FFFFFF','#FFFFFF','#6B5600','#FCE49A','#8A6E00'],
+             'Image only':['#FFFFFF','#1A1A1A','#0E6B4F','#FFFFFF','#0E6B4F','#FFFFFF','#E8F2EE','#10352A']};
+  const FP={'Brand green':['#0E6B4F','#FFFFFF','#FCE49A','#3A2E00','#FFFFFF','#0E6B4F','#E8F2EE','#10352A'],
+            Gold:['#FCE49A','#3A2E00','#0E6B4F','#FFFFFF','#FFFFFF','#6B5600','#FFFFFF','#8A6E00'],
+            Dark:['#14261F','#FFFFFF','#F5B800','#3A2E00','#0E6B4F','#FFFFFF','#E8F2EE','#10352A']};
+  function feat(){
+    const preset=$('featPreset').value, pos=$('featPos').value;
+    const custom = preset==='Custom';
+    paint($('featSw'), custom ? null : (FP[preset]||POS[pos]), !custom);
+  }
+  // ---- Notice tone
+  const TONE={Info:['#FBEFA4','#7A6700'],Positive:['#E4EFEA','#0B4738'],Urgent:['#FFE0E6','#8A0020']};
+  function notice(){ const t=$('noticeTone').value;
+    paint($('noticeSw'), TONE[t]||null, t!=='Custom'); }
+  // ---- Collection orientation drives the item ratio
+  function coll(){ $('collRatio').textContent = $('collOrient').value==='Horizontal' ? '5:3' : '1:1'; }
+  // ---- Collection item tag style
+  const TAG={Article:['#A8BFF0','#1A2A5C'],Tip:['#FBD7F1','#5C1F50']};
+  function tag(){ const t=$('tagStyle').value; paint($('tagSw'), TAG[t]||null, t!=='Custom'); }
+
+  [['featPreset',feat],['featPos',feat],['noticeTone',notice],['collOrient',coll],['tagStyle',tag]]
+    .forEach(([id,fn])=>{ const el=$(id); if(el) el.addEventListener('change',fn); });
+  feat(); notice(); coll(); tag();
+
+  // ---- list: status filter, anchor, move up / down
+  const rows=[...document.querySelectorAll('table.dt tbody tr')];
+  function renumber(){ [...document.querySelectorAll('table.dt tbody tr')]
+    .filter(r=>r.style.display!=='none').forEach((r,i)=>{ r.children[1].textContent=i+1; }); }
+  document.querySelectorAll('.btn-toggle button').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('.btn-toggle button').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    const want=b.textContent.trim();
+    rows.forEach(r=>{ const st=r.querySelector('.pill').textContent.trim();
+      r.style.display = (want==='All'||want===st) ? '' : 'none'; });
+    renumber();
+  }));
+  document.querySelectorAll('.rowact a[aria-label="Anchor"],.rowact a[aria-label="Un-anchor"]').forEach(a=>{
+    a.addEventListener('click',e=>{ e.preventDefault();
+      const on=a.getAttribute('aria-label')==='Un-anchor';
+      a.setAttribute('aria-label',on?'Anchor':'Un-anchor');
+      a.classList.toggle('fg-danger',!on);
+      a.innerHTML='<i class="fa-solid fa-anchor'+(on?'':'-lock')+'"></i>';
+    });
+  });
+})();
+</script>
+</body>
+</html>
