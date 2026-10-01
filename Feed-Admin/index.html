@@ -157,17 +157,15 @@ table.dt th{text-align:left;font-size:.6875rem;font-weight:800;letter-spacing:.0
             color:var(--gray-3);padding:11px 16px;border-bottom:1px solid var(--gray-5);white-space:nowrap}
 table.dt td{padding:12px 16px;border-bottom:1px solid var(--gray-6);font-size:.875rem;vertical-align:middle}
 table.dt tr:last-child td{border-bottom:0}
-.dtfoot{display:flex;align-items:center;justify-content:flex-end;gap:28px;
-        padding:10px 16px;border-top:1px solid var(--gray-6);background:#fff;
-        font-size:.8125rem;color:var(--gray-2);flex-wrap:wrap}
-.dtf-ipp{display:flex;align-items:center;gap:10px}
-.dtf-ipp select.inp{width:76px;padding:4px 8px;font-size:.8125rem;height:auto}
-.dtf-range{white-space:nowrap}
-.dtf-nav{display:flex;align-items:center;gap:2px}
-.pgb{width:32px;height:32px;display:grid;place-items:center;border:0;border-radius:50%;
-     background:transparent;color:var(--black);cursor:pointer;font-size:.875rem;padding:0}
-.pgb:hover:not(:disabled){background:var(--gray-6)}
-.pgb:disabled{color:var(--gray-3);cursor:default}
+.slv-pagination{display:flex;align-items:center;gap:4px;margin-left:auto}
+.slv-pagination-info{font-size:.875rem;color:var(--gray-2);white-space:nowrap;margin-right:4px}
+.slv-page-btn{width:28px;height:28px;display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--gray-5);border-radius:6px;background:#fff;cursor:pointer;
+  font-size:.75rem;color:var(--gray-2);transition:all .15s}
+.slv-page-btn:hover:not(:disabled){background:var(--gray-6)}
+.slv-page-btn:disabled{opacity:.4;cursor:not-allowed}
+.slv-page-size{padding:4px 6px;border:1px solid var(--gray-5);border-radius:6px;
+  font-size:.875rem;background:#fff;color:var(--gray-2);outline:none;cursor:pointer}
 .drag{color:var(--gray-3);cursor:grab;font-size:1rem;line-height:1}
 .ttl{font-weight:700}
 .sub{font-size:.75rem;color:var(--gray-3);margin-top:2px}
@@ -244,7 +242,7 @@ code{background:var(--gray-6);border-radius:4px;padding:1px 5px;font-size:.8125e
   <div class="rule"></div>
 
   <h2 class="sec">1 &middot; Feed items</h2>
-  <p class="sec">Everything in the Feed, in the order hustlers see it. There is no sort control: the order on this screen is the order hustlers get, so sorting it by anything else would show a list you cannot drag. Reordering borrows from the run list: drag the handle, plus <strong>anchor</strong> on every row. There is no edit-order mode, because ordering is what this screen is for. An anchored item keeps its place above newly created ones instead of being pushed down, which is what a standing Notice or a season banner needs. The order here is the order the server sends, and the app never re-sorts. The list is paged on the server at ten rows, as every other Enterprise table is, and the <strong>#</strong> column keeps counting across pages, so the row numbered 11 really is eleventh in the Feed. Searching or changing the status filter goes back to page one. A row can only be dragged among the rows on the page it is on; to move an item a long way, anchor it or change its schedule rather than dragging it page by page. Status is read, never set. <em>Live</em> means the schedule has started, no end has passed and Is Active is ticked. Unticking <em>Is Active</em> overrides everything else and pulls an item immediately without touching its dates, so a cancelled raffle never needs its schedule rewritten to make it disappear.</p>
+  <p class="sec">Everything in the Feed, in the order hustlers see it. There is no sort control: the order on this screen is the order hustlers get, so sorting it by anything else would show a list you cannot drag. Reordering borrows from the run list: drag the handle, plus <strong>anchor</strong> on every row. There is no edit-order mode, because ordering is what this screen is for. An anchored item keeps its place above newly created ones instead of being pushed down, which is what a standing Notice or a season banner needs. The order here is the order the server sends, and the app never re-sorts. The list is paged on the server at ten rows. The pager is the Submission List&rsquo;s: range, back, forward and a page-size select, sitting at the right of the toolbar rather than under the table, which is why <code>v-data-table-server</code> gets an empty <code>#bottom</code> slot. The <strong>#</strong> column keeps counting across pages, so the row numbered 11 really is eleventh in the Feed. Searching or changing the status filter goes back to page one. A row can only be dragged among the rows on the page it is on; to move an item a long way, anchor it or change its schedule rather than dragging it page by page. Status is read, never set. <em>Live</em> means the schedule has started, no end has passed and Is Active is ticked. Unticking <em>Is Active</em> overrides everything else and pulls an item immediately without touching its dates, so a cancelled raffle never needs its schedule rewritten to make it disappear.</p>
   <div class="app notop">
         <div class="side">
           <a class="sbi ghost" href="#"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>Back Home</a>
@@ -264,25 +262,18 @@ code{background:var(--gray-6);border-radius:4px;padding:1px 5px;font-size:.8125e
                 <div class="btn-toggle">
                   <button class="on">All</button><button>Live</button><button>Scheduled</button><button>Inactive</button><button>Ended</button>
                 </div>
+                <div class="slv-pagination">
+                  <span class="slv-pagination-info" id="pgRange">1&ndash;10 of 23</span>
+                  <button class="slv-page-btn" id="pgPrev" aria-label="Previous page"><i class="fa-solid fa-chevron-left"></i></button>
+                  <button class="slv-page-btn" id="pgNext" aria-label="Next page"><i class="fa-solid fa-chevron-right"></i></button>
+                  <select class="slv-page-size" id="ipp"><option>10</option><option>15</option><option>25</option><option>50</option></select>
+                </div>
               </div>
             </div>
             <table class="dt">
               <thead><tr><th></th><th>#</th><th>Item</th><th>Status</th><th>Schedule</th><th></th></tr></thead>
               <tbody id="feedRows"></tbody>
             </table>
-            <div class="dtfoot">
-              <div class="dtf-ipp">
-                <span>Items per page:</span>
-                <select class="inp" id="ipp"><option>10</option><option>25</option><option>50</option><option>100</option></select>
-              </div>
-              <div class="dtf-range" id="pgRange">1&ndash;10 of 23</div>
-              <div class="dtf-nav">
-                <button class="pgb" id="pgFirst" aria-label="First page"><i class="fa-solid fa-angles-left"></i></button>
-                <button class="pgb" id="pgPrev" aria-label="Previous page"><i class="fa-solid fa-angle-left"></i></button>
-                <button class="pgb" id="pgNext" aria-label="Next page"><i class="fa-solid fa-angle-right"></i></button>
-                <button class="pgb" id="pgLast" aria-label="Last page"><i class="fa-solid fa-angles-right"></i></button>
-              </div>
-            </div>
           </div>
         </div>
   </div>
@@ -1207,8 +1198,8 @@ code{background:var(--gray-6);border-radius:4px;padding:1px 5px;font-size:.8125e
           '<i class="fa-solid fa-anchor'+(a?'-lock':'')+'"></i></a></div></td></tr>';
     }).join('');
     $('pgRange').innerHTML = total ? (from+1)+'&ndash;'+(from+slice.length)+' of '+total : '0 of 0';
-    $('pgFirst').disabled = $('pgPrev').disabled = page<=1;
-    $('pgNext').disabled  = $('pgLast').disabled = page>=pages;
+    $('pgPrev').disabled = page<=1;
+    $('pgNext').disabled = page>=pages;
     $('feedRows').querySelectorAll('a.anc').forEach(a=>a.addEventListener('click',e=>{
       e.preventDefault(); const i=+a.dataset.i; anchored[i]=!anchored[i]; render(); }));
   }
@@ -1218,10 +1209,8 @@ code{background:var(--gray-6);border-radius:4px;padding:1px 5px;font-size:.8125e
     b.classList.add('on'); filter=b.textContent.trim(); page=1; render();
   }));
   $('ipp').addEventListener('change',e=>{ limit=+e.target.value; page=1; render(); });
-  $('pgFirst').addEventListener('click',()=>{ page=1; render(); });
-  $('pgPrev') .addEventListener('click',()=>{ page--; render(); });
-  $('pgNext') .addEventListener('click',()=>{ page++; render(); });
-  $('pgLast') .addEventListener('click',()=>{ page=Math.ceil(matching().length/limit); render(); });
+  $('pgPrev').addEventListener('click',()=>{ page--; render(); });
+  $('pgNext').addEventListener('click',()=>{ page++; render(); });
   render();
 })();
 </script>
