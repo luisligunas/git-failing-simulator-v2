@@ -591,6 +591,10 @@ code{background:var(--gray-6);border-radius:4px;padding:1px 5px;font-size:.8125e
     '1.2-1.2A4.7 4.7 0 0 1 19.8 13z"/></svg><span>0</span></button></div></div>';
   let customAvatar=SARI;
   let images=['https://picsum.photos/seed/hustle-season/716/392'];
+  // The frame the backend cuts when nobody uploads a poster, and the image an
+  // author-supplied poster replaces it with. Two seeds, so the swap is visible.
+  const POSTER='https://picsum.photos/seed/hustle-video/716/392';
+  const POSTER_UP='https://picsum.photos/seed/hustle-poster/716/392';
   let video={file:'season-3-teaser.mp4',poster:null};
   let poll={options:['At home','On the go'],closes:''};
   let art={style:'Article',url:'https://hustle-ph.com/checking',title:'Why was my submission rejected?',
@@ -906,7 +910,7 @@ code{background:var(--gray-6);border-radius:4px;padding:1px 5px;font-size:.8125e
         e.preventDefault(); const a=b2.dataset.v;
         if(a==='replace') video.file='season-3-teaser.mp4';
         if(a==='remove'){ video.file=null; video.poster=null; }
-        if(a==='preplace') video.poster=POSTER;
+        if(a==='preplace') video.poster=POSTER_UP;
         if(a==='premove') video.poster=null;
         sync(); }));
     }
