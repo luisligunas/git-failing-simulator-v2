@@ -239,12 +239,12 @@ code{background:var(--gray-6);border-radius:4px;padding:1px 5px;font-size:.8125e
 .scrim{position:fixed;inset:0;background:rgba(32,32,32,.45);display:flex;align-items:center;
   justify-content:center;z-index:60;padding:20px}
 .scrim[hidden]{display:none}
-.confirmbox{width:400px;min-height:300px;display:flex;flex-direction:column;justify-content:center;
-  align-items:center;position:relative;padding:28px}
+.confirmbox{width:400px;display:flex;flex-direction:column;justify-content:center;
+  align-items:center;position:relative;padding:26px 26px 22px}
 .confirmbox h1{font-size:1.3125rem;font-weight:800;letter-spacing:-.01em;margin:0 0 10px}
 .confirmbox .cb-head{width:80%;text-align:center;margin-bottom:8px}
 .confirmbox .cb-head p{font-size:.875rem;color:var(--gray-2);line-height:1.55;margin:0}
-.confirmbox .cb-act{display:grid;grid-template-columns:repeat(2,max-content);gap:8px;margin-top:20px}
+.confirmbox .cb-act{display:grid;grid-template-columns:repeat(2,max-content);gap:8px;margin-top:18px}
 .condition-box{border:1px solid var(--gray-5);border-radius:10px;padding:14px;background:var(--gray-7)}
 .condition-box + .condition-box{margin-top:12px}
 .cba{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;font-size:.875rem;color:var(--gray-2)}
@@ -439,7 +439,7 @@ code{background:var(--gray-6);border-radius:4px;padding:1px 5px;font-size:.8125e
   </div>
   <div class="rule"></div>
   <h3 class="sub">Removing a collection item</h3>
-  <p class="sec">Delete sits on every item row in the Content card, beside Edit. It asks first, because the item carries an image, a tag and a destination that are not recoverable once the card is saved. The dialog is the Enterprise <code>DeleteConfirmationModal</code> as it stands: 400&times;300, centred, <strong>No</strong> before <strong>Yes</strong>, and it ignores a click on the scrim so a stray click cannot delete anything. Removing the last item leaves the Collection invalid rather than deleting the card, the same way a Feature card with no image is invalid.</p>
+  <p class="sec">Delete sits on every item row in the Content card, beside Edit. It asks first, because the item carries an image, a tag and a destination that are not recoverable once the card is saved. The dialog is the Enterprise <code>DeleteConfirmationModal</code>: 400 wide, centred, <strong>No</strong> before <strong>Yes</strong>, and it ignores a click on the scrim so a stray click cannot delete anything. Pass <code>GenericModal</code> a width but <strong>no height</strong> &mdash; it applies <code>height</code> as a hard pixel value, and the existing caller&rsquo;s 300 leaves this much copy floating in a half-empty box. Removing the last item leaves the Collection invalid rather than deleting the card, the same way a Feature card with no image is invalid.</p>
   <div style="background:var(--gray-6);border-radius:12px;padding:26px;display:flex;justify-content:center;margin-bottom:24px">
     <div class="modalbox confirmbox">
       <button class="close" aria-label="Close">&times;</button>
