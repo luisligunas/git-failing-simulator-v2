@@ -413,9 +413,9 @@ code{background:var(--gray-6);border-radius:4px;padding:1px 5px;font-size:.8125e
           <div><label class="fld">Tag <span class="req">*</span></label><input class="inp" value="Survey"></div>
           <div><label class="fld">Tag style</label>
             <select class="inp" id="tagStyle"><option>Article</option><option>Tip</option><option selected>Custom</option></select>
-            <div id="tagSw" style="display:flex;gap:8px;margin-top:9px">
-              <span class="clr"><b style="background:#A8BFF0"></b>#A8BFF0</span>
-              <span class="clr"><b style="background:#1A2A5C"></b>#1A2A5C</span>
+            <div class="swgrid" id="tagSw" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+              <div><span class="cl">Tag fill</span><span class="clr"><b id="tgFill" style="background:#A8BFF0"></b><i class="hx" style="font-style:normal">#A8BFF0</i></span></div>
+              <div><span class="cl">Tag text</span><span class="clr"><b id="tgInk" style="background:#1A2A5C"></b><i class="hx" style="font-style:normal">#1A2A5C</i></span></div>
             </div>
           </div>
         </div>
@@ -616,10 +616,10 @@ code{background:var(--gray-6);border-radius:4px;padding:1px 5px;font-size:.8125e
       '<div class="grid2" style="margin-top:14px">'+
       '<div><label class="fld">Tag style</label><select class="inp" id="aStyle">'+
       ['Article','Tip','Custom'].map(n=>'<option'+(n===art.style?' selected':'')+'>'+n+'</option>').join('')+'</select></div>'+
-      '<div><span class="cl">Tag colours</span><div style="display:flex;gap:8px">'+
-      '<span class="clr locked"><b id="aFill" style="background:'+art.fill+'"></b><i class="hx" style="font-style:normal">'+art.fill+'</i></span>'+
-      '<span class="clr locked"><b id="aInk" style="background:'+art.ink+'"></b><i class="hx" style="font-style:normal">'+art.ink+'</i></span>'+
-      '</div></div></div>';
+      '<div class="swgrid" id="aTagSw" style="grid-template-columns:repeat(2,minmax(0,1fr))">'+
+      '<div><span class="cl">Tag fill</span><span class="clr locked"><b id="aFill" style="background:'+art.fill+'"></b><i class="hx" style="font-style:normal">'+art.fill+'</i></span></div>'+
+      '<div><span class="cl">Tag text</span><span class="clr locked"><b id="aInk" style="background:'+art.ink+'"></b><i class="hx" style="font-style:normal">'+art.ink+'</i></span></div>'+
+      '</div></div>';
   }
   function wireArt(){
     ['aUrl','aTitle','aTag','aMeta'].forEach(id=>$(id).addEventListener('input',()=>{
@@ -630,7 +630,7 @@ code{background:var(--gray-6);border-radius:4px;padding:1px 5px;font-size:.8125e
       const locked=!!c; if(c){ art.fill=c[0]; art.ink=c[1]; }
       $('aFill').style.background=art.fill; $('aFill').nextElementSibling.textContent=art.fill;
       $('aInk').style.background=art.ink; $('aInk').nextElementSibling.textContent=art.ink;
-      $('aFill').closest('div').querySelectorAll('.clr').forEach(c2=>c2.classList.toggle('locked',locked));
+      $('aTagSw').querySelectorAll('.clr').forEach(c2=>c2.classList.toggle('locked',locked));
       artPV(); });
     artPV();
   }
@@ -1163,6 +1163,21 @@ code{background:var(--gray-6);border-radius:4px;padding:1px 5px;font-size:.8125e
     setType(l.dataset.type);
   }));
   $('active').addEventListener('click',()=>$('active').classList.toggle('on'));
+  // The collection-item modal is static markup, so its Tag style select needs
+  // wiring of its own. A preset writes both colours and locks them; Custom
+  // leaves whatever is there and unlocks.
+  (function wireModalTag(){
+    const sel=$('tagStyle'); if(!sel) return;
+    const apply=()=>{
+      const c=TAGPAL[sel.value], locked=!!c;
+      if(c){
+        $('tgFill').style.background=c[0]; $('tgFill').nextElementSibling.textContent=c[0];
+        $('tgInk').style.background=c[1];  $('tgInk').nextElementSibling.textContent=c[1];
+      }
+      $('tagSw').querySelectorAll('.clr').forEach(x=>x.classList.toggle('locked',locked));
+    };
+    sel.addEventListener('change',apply); apply();
+  })();
   $('tFields').innerHTML=TF.Custom;
   setType('Post');
 })();
