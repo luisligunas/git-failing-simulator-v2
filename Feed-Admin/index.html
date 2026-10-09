@@ -94,6 +94,7 @@ h3.sub{margin:28px 0 13px;font-size:.75rem;font-weight:700;letter-spacing:.14em;
 .empty p{margin:0 0 18px;font-size:.875rem;color:var(--gray-2)}
 .no-border{border:0;background:transparent;font-family:inherit;font-size:.875rem;font-weight:700;
            color:var(--brand-green);cursor:pointer;padding:0 2px}
+.no-border.danger{color:var(--danger)}
 .pill{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:3px 10px;
       font-size:.6875rem;font-weight:700;letter-spacing:.02em;white-space:nowrap}
 .pill .dot{width:6px;height:6px;border-radius:999px}
@@ -233,6 +234,17 @@ code{background:var(--gray-6);border-radius:4px;padding:1px 5px;font-size:.8125e
                  font-size:1.3rem;line-height:1;cursor:pointer}
 .modalbox main{padding:0 24px 8px;overflow:auto}
 .action-wrapper{display:flex;justify-content:flex-end;gap:10px;padding:16px 24px 20px;border-top:1px solid var(--gray-5)}
+/* DeleteConfirmationModal.vue: GenericModal at 400x300, shouldNotCloseOutside,
+   centred header over a two-column No / Yes footer. */
+.scrim{position:fixed;inset:0;background:rgba(32,32,32,.45);display:flex;align-items:center;
+  justify-content:center;z-index:60;padding:20px}
+.scrim[hidden]{display:none}
+.confirmbox{width:400px;min-height:300px;display:flex;flex-direction:column;justify-content:center;
+  align-items:center;position:relative;padding:28px}
+.confirmbox h1{font-size:1.3125rem;font-weight:800;letter-spacing:-.01em;margin:0 0 10px}
+.confirmbox .cb-head{width:80%;text-align:center;margin-bottom:8px}
+.confirmbox .cb-head p{font-size:.875rem;color:var(--gray-2);line-height:1.55;margin:0}
+.confirmbox .cb-act{display:grid;grid-template-columns:repeat(2,max-content);gap:8px;margin-top:20px}
 .condition-box{border:1px solid var(--gray-5);border-radius:10px;padding:14px;background:var(--gray-7)}
 .condition-box + .condition-box{margin-top:12px}
 .cba{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;font-size:.875rem;color:var(--gray-2)}
@@ -426,6 +438,17 @@ code{background:var(--gray-6);border-radius:4px;padding:1px 5px;font-size:.8125e
     </div>
   </div>
   <div class="rule"></div>
+  <h3 class="sub">Removing a collection item</h3>
+  <p class="sec">Delete sits on every item row in the Content card, beside Edit. It asks first, because the item carries an image, a tag and a destination that are not recoverable once the card is saved. The dialog is the Enterprise <code>DeleteConfirmationModal</code> as it stands: 400&times;300, centred, <strong>No</strong> before <strong>Yes</strong>, and it ignores a click on the scrim so a stray click cannot delete anything. Removing the last item leaves the Collection invalid rather than deleting the card, the same way a Feature card with no image is invalid.</p>
+  <div style="background:var(--gray-6);border-radius:12px;padding:26px;display:flex;justify-content:center;margin-bottom:24px">
+    <div class="modalbox confirmbox">
+      <button class="close" aria-label="Close">&times;</button>
+      <div class="cb-head"><h1>Are you sure?</h1>
+        <p>Proceeding will remove &ldquo;7 new surveys&rdquo; from this collection, along with its image, tag and destination.</p></div>
+      <div class="cb-act"><button class="btn secondary sm">No</button><button class="btn sm">Yes</button></div>
+    </div>
+  </div>
+  <div class="rule"></div>
   <h2 class="sec">3 &middot; Targeting</h2>
   <p class="sec">Not a new screen. The editor above shows the four targeting states live: All needs no further fields, Run gives a read-only field with a <strong>Choose</strong> button, Mission is typed straight in, and <strong>Custom Targeting</strong> reveals the <strong>Edit</strong> button that opens the modal below. That modal is the one the Banner editor already uses: 720&times;800, nested ALL/ANY boxes, the same thirteen attributes. The Feed passes its value in and reads the result back; nothing about it changes.</p>
   <div class="app notop">
@@ -519,6 +542,13 @@ code{background:var(--gray-6);border-radius:4px;padding:1px 5px;font-size:.8125e
   </div>
 </div>
 
+<div class="scrim" id="confirmScrim" hidden>
+  <div class="modalbox confirmbox">
+    <button class="close" id="cfX" aria-label="Close">&times;</button>
+    <div class="cb-head"><h1>Are you sure?</h1><p id="cfBody"></p></div>
+    <div class="cb-act"><button class="btn secondary sm" id="cfNo">No</button><button class="btn sm" id="cfYes">Yes</button></div>
+  </div>
+</div>
 <script>
 (function(){
   const $=id=>document.getElementById(id);
@@ -597,6 +627,11 @@ code{background:var(--gray-6);border-radius:4px;padding:1px 5px;font-size:.8125e
   const POSTER_UP='https://picsum.photos/seed/hustle-poster/716/392';
   let video={file:'season-3-teaser.mp4',poster:null};
   let poll={options:['At home','On the go'],closes:''};
+  let coll={items:[
+    {seed:'hustle-survey',title:'7 new surveys',tag:'Survey',fill:'#A8BFF0',ink:'#1A2A5C'},
+    {seed:'hustle-refer', title:'Refer a friend',tag:'Promo', fill:'#FBD7F1',ink:'#5C1F50'},
+    {seed:'hustle-checkin',title:'Daily check-in',tag:'Bonus',fill:'#E7F3A3',ink:'#3A4A00'}]};
+  const COLL_SEEDS=['hustle-wallet','hustle-cebu','hustle-season'];
   let art={style:'Article',url:'https://hustle-ph.com/checking',title:'Why was my submission rejected?',
     meta:'3 min read',tag:'Article',fill:'#A8BFF0',ink:'#1A2A5C',
     img:'https://picsum.photos/seed/hustle-reject/152/152'};
@@ -1005,14 +1040,8 @@ code{background:var(--gray-6);border-radius:4px;padding:1px 5px;font-size:.8125e
       fields:'<label class="fld">Orientation</label><select class="inp" id="collOrient2"><option>Horizontal</option><option>Vertical</option></select>'+
         '<label class="fld" style="margin-top:14px">Heading</label>'+
         '<input class="inp" value="More ways to earn" placeholder="Optional. Without one the items run straight into the feed">'+
-        '<label class="fld" style="margin-top:14px">Items</label>'+
-        '<div style="display:flex;flex-direction:column;gap:8px">'+
-        '<div style="display:flex;gap:9px;align-items:center;border:1px solid var(--gray-5);border-radius:8px;padding:8px">'+
-        '<img src="https://picsum.photos/seed/hustle-survey/120/72" alt="" style="width:52px;height:32px;border-radius:5px;object-fit:cover;flex-shrink:0">'+
-        '<div style="flex:1;min-width:0;font-size:.875rem;font-weight:700">7 new surveys</div>'+
-        '<span style="background:#A8BFF0;color:#1A2A5C;border-radius:999px;padding:3px 9px;font-size:.6875rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase">Survey</span>'+
-        '<button class="no-border">Edit</button></div>'+
-        '<button class="btn tertiary sm" style="align-self:flex-start">+ Add item</button></div>',
+        '<label class="fld" style="margin-top:14px">Items <span class="req">*</span></label>'+
+        '<div style="display:flex;flex-direction:column;gap:8px" id="collItems">'+collRows()+'</div>',
       pv:'<div><div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:9px">'+
         '<span style="font-size:19px;font-weight:800;letter-spacing:-.02em">More ways to earn</span></div>'+
         '<div style="display:flex;gap:12px"><div class="c" style="flex:0 0 166px"><img src="https://picsum.photos/seed/hustle-survey/346/212" alt="" style="height:100px">'+
@@ -1020,6 +1049,32 @@ code{background:var(--gray-6);border-radius:4px;padding:1px 5px;font-size:.8125e
         '<div style="font-size:14px;font-weight:800;line-height:1.2;margin-top:6px">7 new surveys</div></div></div>'+
         '<div class="c" style="flex:0 0 166px"><img src="https://picsum.photos/seed/hustle-refer/346/212" alt="" style="height:100px"></div></div></div>'}
   };
+  function collRows(){
+    return coll.items.map((it,i)=>
+      '<div style="display:flex;gap:9px;align-items:center;border:1px solid var(--gray-5);border-radius:8px;padding:8px">'+
+      '<img src="https://picsum.photos/seed/'+it.seed+'/120/72" alt="" style="width:52px;height:32px;border-radius:5px;object-fit:cover;flex-shrink:0">'+
+      '<div style="flex:1;min-width:0;font-size:.875rem;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+it.title+'</div>'+
+      '<span style="background:'+it.fill+';color:'+it.ink+';border-radius:999px;padding:3px 9px;font-size:.6875rem;'+
+        'font-weight:800;letter-spacing:.06em;text-transform:uppercase;flex-shrink:0">'+it.tag+'</span>'+
+      '<button class="no-border" data-cedit="'+i+'">Edit</button>'+
+      '<button class="no-border danger" data-cdel="'+i+'" aria-label="Delete item" title="Delete item">'+
+      '<i class="fa-solid fa-trash-alt"></i></button></div>').join('')+
+      (coll.items.length ? '' : '<p class="fg-danger">A collection needs at least one item.</p>')+
+      '<button class="btn tertiary sm" style="align-self:flex-start" data-cadd="1">+ Add item</button>';
+  }
+  // One confirm dialog for the whole editor: pass the consequence line and what
+  // to do on Yes. The scrim is inert, matching shouldNotCloseOutside.
+  let cfAction=null;
+  function confirmDelete(body, onYes){
+    cfAction=onYes; $('cfBody').textContent=body; $('confirmScrim').hidden=false; $('cfNo').focus();
+  }
+  (function wireConfirm(){
+    const close=()=>{ $('confirmScrim').hidden=true; cfAction=null; };
+    $('cfNo').addEventListener('click',close);
+    $('cfX').addEventListener('click',close);
+    $('cfYes').addEventListener('click',()=>{ const a=cfAction; close(); if(a) a(); });
+    document.addEventListener('keydown',e=>{ if(e.key==='Escape' && !$('confirmScrim').hidden) close(); });
+  })();
   function setType(t){
     document.querySelectorAll('.radio[data-type]').forEach(x=>x.classList.toggle('on',x.dataset.type===t));
     const post = t==='Post';
@@ -1123,21 +1178,38 @@ code{background:var(--gray-6);border-radius:4px;padding:1px 5px;font-size:.8125e
       const f=()=>{
         const vert=$('collOrient2').value==='Vertical';
         const head=$('ctFields').querySelectorAll('input')[0].value;
-        const tile=(seed,title,tagT)=>vert
+        const tile=it=>vert
           ? '<a style="display:flex;align-items:center;gap:13px;background:#fff;border-radius:16px;padding:11px;text-decoration:none;color:inherit">'+
-            '<img src="https://picsum.photos/seed/'+seed+'/152/152" alt="" style="width:76px;height:76px;border-radius:12px;flex-shrink:0;object-fit:cover">'+
-            '<div style="flex-grow:1;min-width:0"><span style="background:#A8BFF0;color:#1A2A5C;border-radius:999px;padding:2px 9px;font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase">'+tagT+'</span>'+
-            '<div style="font-size:15px;font-weight:800;line-height:1.2;margin-top:5px">'+title+'</div></div></a>'
-          : '<div class="c" style="flex:0 0 166px"><img src="https://picsum.photos/seed/'+seed+'/346/212" alt="" style="height:100px">'+
-            '<div style="padding:11px 12px 13px"><span style="background:#A8BFF0;color:#1A2A5C;border-radius:999px;padding:3px 10px;font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase">'+tagT+'</span>'+
-            '<div style="font-size:14px;font-weight:800;line-height:1.2;margin-top:6px">'+title+'</div></div></div>';
+            '<img src="https://picsum.photos/seed/'+it.seed+'/152/152" alt="" style="width:76px;height:76px;border-radius:12px;flex-shrink:0;object-fit:cover">'+
+            '<div style="flex-grow:1;min-width:0"><span style="background:'+it.fill+';color:'+it.ink+';border-radius:999px;padding:2px 9px;font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase">'+it.tag+'</span>'+
+            '<div style="font-size:15px;font-weight:800;line-height:1.2;margin-top:5px">'+it.title+'</div></div></a>'
+          : '<div class="c" style="flex:0 0 166px"><img src="https://picsum.photos/seed/'+it.seed+'/346/212" alt="" style="height:100px">'+
+            '<div style="padding:11px 12px 13px"><span style="background:'+it.fill+';color:'+it.ink+';border-radius:999px;padding:3px 10px;font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase">'+it.tag+'</span>'+
+            '<div style="font-size:14px;font-weight:800;line-height:1.2;margin-top:6px">'+it.title+'</div></div></div>';
         $('pvSlot').innerHTML='<div>'+(head?'<div style="font-size:19px;font-weight:800;letter-spacing:-.02em;margin-bottom:9px">'+head+'</div>':'')+
           '<div style="display:flex;'+(vert?'flex-direction:column;gap:9px':'gap:12px')+'">'+
-          tile('hustle-survey','7 new surveys','Survey')+tile('hustle-refer','Refer a friend','Promo')+'</div></div>';
+          coll.items.map(tile).join('')+'</div></div>';
       };
+      // Rows are re-rendered rather than the whole panel, so the orientation
+      // and heading the author has already typed survive an add or a delete.
+      const rows=()=>{ $('collItems').innerHTML=collRows(); wireRows(); f(); };
+      function wireRows(){
+        $('collItems').querySelectorAll('[data-cdel]').forEach(b=>b.addEventListener('click',e=>{
+          e.preventDefault();
+          const i=+b.dataset.cdel;
+          confirmDelete('Proceeding will remove \u201c'+coll.items[i].title+'\u201d from this collection, '+
+            'along with its image, tag and destination.', ()=>{ coll.items.splice(i,1); rows(); });
+        }));
+        $('collItems').querySelectorAll('[data-cedit]').forEach(b=>b.addEventListener('click',e=>e.preventDefault()));
+        const add=$('collItems').querySelector('[data-cadd]');
+        if(add) add.addEventListener('click',e=>{ e.preventDefault();
+          const n=coll.items.length;
+          coll.items.push({seed:COLL_SEEDS[n%COLL_SEEDS.length],title:'New item',tag:'Tag',fill:'#A8BFF0',ink:'#1A2A5C'});
+          rows(); });
+      }
       $('collOrient2').addEventListener('change',f);
       $('ctFields').querySelectorAll('input')[0].addEventListener('input',f);
-      f();
+      wireRows(); f();
     }
     if(t==='Notice'){
       const f=()=>{
