@@ -1000,7 +1000,7 @@ code{background:var(--gray-6);border-radius:4px;padding:1px 5px;font-size:.8125e
       fields:'<label class="fld">Image position</label>'+
         '<select class="inp" id="featPos2"><option>Top</option><option>Behind</option><option>Beside</option><option>Image only</option></select>'+
         '<label class="fld" style="margin-top:14px">Image <span class="req">*</span></label>'+
-        '<div style="display:flex;gap:10px;align-items:center"><img src="https://picsum.photos/seed/hustle-raffle/160/90" alt="" style="width:72px;height:41px;border-radius:6px;object-fit:cover"><button class="btn tertiary sm">Replace</button></div>'+
+        '<div style="display:flex;gap:10px;align-items:center"><img src="https://picsum.photos/seed/hustle-raffle/160/90" alt="" style="width:72px;height:41px;border-radius:6px;object-fit:cover"><button class="btn tertiary sm">Replace</button><span class="label-s" id="featRatio">16:9</span></div>'+
         '<div id="fText"><label class="fld" style="margin-top:14px">Headline</label><input class="inp" value="₱10,000 raffle this September">'+
         '<label class="fld" style="margin-top:14px">Sub-line</label><input class="inp" placeholder="Optional">'+
         '<div class="grid3" style="margin-top:14px">'+
@@ -1159,7 +1159,11 @@ code{background:var(--gray-6);border-radius:4px;padding:1px 5px;font-size:.8125e
       $('dest').addEventListener('change',d);
       if($('cta')) $('cta').addEventListener('input',d);
       d();
-      const f=()=>{ const pre=$('featPreset2').value, bare=$('featPos2').value==='Image only';
+      // The position decides the ratio the upload must match, so the author is
+      // told which one before they pick a file. api/feed.md is the source.
+      const RATIO={Top:'16:9','Image only':'16:9',Behind:'5:3',Beside:'1:1'};
+      const f=()=>{ const pre=$('featPreset2').value, pos=$('featPos2').value, bare=pos==='Image only';
+        $('featRatio').textContent = RATIO[pos]||'16:9';
         $('fText').style.display = bare?'none':'';
         $('fColours').style.display = bare?'none':'';
         repaint($('featSw2'), pre==='Custom'?null:(FP2[pre]||POS2[$('featPos2').value]), pre!=='Custom');
